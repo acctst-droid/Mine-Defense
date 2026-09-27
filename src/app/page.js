@@ -195,12 +195,12 @@ export default function Home() {
   }, [furnacesStatus])
 
   const [inventory, setInventory] = useState({
-    Stone: 55,
-    Coal: 55,
-    Copper: 55,
-    Iron: 55,
-    Gold: 55,
-    Oil: 55,
+    Stone: 0,
+    Coal: 0,
+    Copper: 0,
+    Iron: 0,
+    Gold: 0,
+    Oil: 0,
     Uranium: 0,
     Furnace: 0,
     "Iron Plate": 0,
