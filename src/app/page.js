@@ -181,7 +181,7 @@ export default function Home() {
     basehp: 100,
   })
   const [raidStatus, setRaidStatus] = useState({
-    timeuntilraid: 420,
+    timeuntilraid: 10,
     timepassed: 0,
     monstersalive: 0,
     totalmonsters: 0,
@@ -334,34 +334,14 @@ export default function Home() {
           totalmonsters: prev.raidwave * 2,
           waving: true,
           timepassed: 0,
-          timeuntilraid: 180,
+          timeuntilraid: 10,
         }))
 
       } else if (rsf.waving) {
         let dps = 0;
-        Object.entries(Guns).forEach(([key, value]) => {
-          if (inventoryRef.current[key] >= 0 && inventoryRef.current[value.ammo] > 0) {
-            dps = (dps + inventoryRef.current[key] * value.damage)
-            setInventory(prev => ({
-              ...prev,
-              [value.ammo]: prev[value.ammo] - 1
-            }))
-          }
-        })
-        setRaidStatus(prev => ({
-          ...prev,
-          monstersalive: prev.monstersalive - (dps / 100)
 
-        }))
 
-        if (basehpref.current.basehp <= 0) {
-          setgameover(true)
-        } else {
-          setbasehp(prev => ({
-            ...prev,
-            basehp: prev.basehp - (rsf.monstersalive * 5)
-          }))
-        }
+
         if (rsf.monstersalive <= 0) {
           setRaidStatus(prev => ({
             ...prev,
@@ -371,13 +351,36 @@ export default function Home() {
 
           }))
         }
+        if (basehpref.current.basehp <= 0) {
+          setgameover(true)
+        } else {
+          setbasehp(prev => ({
+            ...prev,
+            basehp: prev.basehp - (rsf.monstersalive * 5)
+          }))
+        }
+        Object.entries(Guns).forEach(([key, value]) => {
+          if (inventoryRef.current[key] >= 0 && inventoryRef.current[value.ammo] >= inventoryRef.current[key]) {
+            dps = (dps + inventoryRef.current[key] * value.damage)
+
+            setInventory(prev => ({
+              ...prev,
+              [value.ammo]: prev[value.ammo] - prev[key]
+            }))
+          }
+        })
+        setRaidStatus(prev => ({
+          ...prev,
+          monstersalive: prev.monstersalive - (dps / 100)
+
+        }))
 
 
 
       }
     }, 1000);
     return () => clearInterval(minterval)
-  }, [])
+  }, [raidStatus])
   return (
     <>
       <div className="select-none flex justify-start items-center h-screen">
