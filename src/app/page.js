@@ -16,6 +16,7 @@ import CopperPlate from "../../public/Copper Plate.png"
 import Brick from "../../public/Brick.png"
 import Pistol from "../../public/Pistol.png"
 import PistolAmmo from "../../public/Pistol Ammo.png"
+import Wall from "../../public/Wall.png"
 const Images = {
   Furnace: Furnace,
   Stone: Stone,
@@ -31,6 +32,7 @@ const Images = {
   "Copper Plate": CopperPlate,
   Pistol: Pistol,
   "Pistol Ammo": PistolAmmo,
+  Wall: Wall,
 }
 
 const StoneOre = {
@@ -114,7 +116,8 @@ const PistolCraft = {
   resourceNeeded: 5,
   resource2: null,
   resourceNeeded2: null,
-  color: "#4b4a4d"
+  color: "#4b4a4d",
+  description: "15 damage"
 
 }
 const PistolAmmoCraft = {
@@ -125,10 +128,20 @@ const PistolAmmoCraft = {
   resourceNeeded2: null,
   color: "#c7aa54"
 }
+const WallCraft = {
+  item: "Wall",
+  resource: "Brick",
+  resourceNeeded: 5,
+  resource2: null,
+  resourceNeeded2: null,
+  color: "#0d3b08",
+  description: "+25 HP"
+}
 const Craftables = {
   Furnace: FurnaceCraft,
   Pistol: PistolCraft,
   "Pistol Ammo": PistolAmmoCraft,
+  Wall: WallCraft,
 }
 const MaxStack = {
   Stone: null,
@@ -145,6 +158,7 @@ const MaxStack = {
   Furnace: 1,
   Pistol: 1,
   "Pistol Ammo": null,
+  Wall: null,
 }
 const MeltingResults = {
   Iron: "Iron Plate",
@@ -167,7 +181,7 @@ export default function Home() {
     basehp: 100,
   })
   const [raidStatus, setRaidStatus] = useState({
-    timeuntilraid: 420,
+    timeuntilraid: 10,
     timepassed: 0,
     monstersalive: 0,
     totalmonsters: 0,
@@ -195,8 +209,8 @@ export default function Home() {
   }, [furnacesStatus])
 
   const [inventory, setInventory] = useState({
-    Stone: 0,
-    Coal: 0,
+    Stone: 110,
+    Coal: 110,
     Copper: 0,
     Iron: 0,
     Gold: 0,
@@ -207,8 +221,9 @@ export default function Home() {
     "Copper Plate": 0,
     "Gold Plate": 0,
     Brick: 0,
-    Pistol: 0,
-    "Pistol Ammo": 0,
+    Pistol: 1,
+    "Pistol Ammo": 12,
+    Wall: 0,
   })
   const inventoryRef = useRef(inventory)
   useEffect(() => {
@@ -303,6 +318,11 @@ export default function Home() {
   useEffect(() => {
     const minterval = setInterval(() => {
       const rsf = raidstatusref.current
+      const maxbasehpcalc = 100 + (inventoryRef.current.Wall * 25)
+      setbasehp(prev => ({
+        ...prev,
+        maxbasehp: maxbasehpcalc
+      }))
       setRaidStatus(prev => ({
         ...prev,
         timepassed: prev.timepassed + 1
@@ -318,14 +338,14 @@ export default function Home() {
         }))
 
       } else if (rsf.waving) {
-        console.log("Waving!")
         let dps = 0;
         Object.entries(Guns).forEach(([key, value]) => {
-          console.log("Object entries sucesfull")
           if (inventoryRef.current[key] >= 0 && inventoryRef.current[value.ammo] > 0) {
-            console.log("Condição if correta")
             dps = (dps + inventoryRef.current[key] * value.damage)
-            inventoryRef.current[value.ammo] -= 1
+            setInventory(prev => ({
+              ...prev,
+              [value.ammo]: prev[value.ammo] - 1
+            }))
           }
         })
         setRaidStatus(prev => ({
@@ -355,7 +375,6 @@ export default function Home() {
 
 
       }
-      console.log(rsf)
     }, 1000);
     return () => clearInterval(minterval)
   }, [])
@@ -378,7 +397,7 @@ export default function Home() {
             <Hammer></Hammer>
             <span className="text-2xl">Craft</span>
           </div>
-        </div>  
+        </div>
         {activeGui === "Mine" && <div className=" w-300 z-20 h-150 bg-slate-900/80 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid grid-rows-2 grid-cols-6  justify-start flex-row items-start shadow-inner">
           {Object.entries(OreCards).map(([key, value]) => (
             <div key={key} className="w-40 h-60 rounded-xl flex justify-start items-center flex-col gap-2 ml-5 mt-5 p-4" style={{ backgroundColor: value.color }}>
@@ -505,7 +524,7 @@ export default function Home() {
                 if (furnacesStatus[openFurnace].OutputQuantity > 0) {
                   setInventory(prev => ({
                     ...prev,
-                    [furnacesStatus[openFurnace].Output]: prev[furnacesStatus[openFurnace].Output] + 1
+                    [furnacesStatus[openFurnace].Output]: prev[furnacesStatus[openFurnace].Output] + furnacesStatus[openFurnace].OutputQuantity
                   }))
                   setfurnacesStatus(prev => ({
                     ...prev,
@@ -558,7 +577,9 @@ export default function Home() {
                   <span className={` ${inventoryresource2 >= (value.resourceNeeded2 ?? 0) ? "text-white" : "text-red-500"}`}
                   >{value.resourceNeeded2 + " " + value.resource2 + " (" + inventoryresource2 + ")"}</span>
                 </div>
+
                 }
+
                 <button className="mt-2 bg-green-500 rounded-2xl botaogenerico font-bold text-2xl px-6"
                   onClick={() => {
 
@@ -598,6 +619,7 @@ export default function Home() {
                       }
                     }
                   }}>Craft</button>
+                <span className="font-bold mt-2">{Craftables[key].description ?? ""}</span>
               </div>
             )
           })}
@@ -622,7 +644,7 @@ export default function Home() {
                 <div className=" h-10 bg-green-500 rounded transition-[width] ease-linear" style={{ width: (basestatus.basehp / basestatus.maxbasehp) * 100 + "%" }}></div>
               </div>
               <div className="flex  mt-2 justify-start items-center rounded relative bg-zinc-300/60">
-                <span className="absolute text-[20px] text-nowrap font-bold left-1/2 -translate-x-1/2">{"Monsters alive: " + Math.round(raidStatus.monstersalive)}</span>
+                <span className="absolute text-[20px] text-nowrap font-bold left-1/2 -translate-x-1/2">{"Monsters alive: " + Math.max(1, Math.round(raidStatus.monstersalive))}</span>
                 <div className=" h-10 bg-red-500 rounded transition-[width] ease-linear" style={{ width: (raidStatus.monstersalive / raidStatus.totalmonsters) * 100 + "%" }}></div>
               </div>
             </div>}
