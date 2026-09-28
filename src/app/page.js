@@ -181,7 +181,7 @@ export default function Home() {
     basehp: 100,
   })
   const [raidStatus, setRaidStatus] = useState({
-    timeuntilraid: 10,
+    timeuntilraid: 420,
     timepassed: 0,
     monstersalive: 0,
     totalmonsters: 0,
@@ -209,8 +209,8 @@ export default function Home() {
   }, [furnacesStatus])
 
   const [inventory, setInventory] = useState({
-    Stone: 110,
-    Coal: 110,
+    Stone: 0,
+    Coal: 0,
     Copper: 0,
     Iron: 0,
     Gold: 0,
@@ -221,8 +221,8 @@ export default function Home() {
     "Copper Plate": 0,
     "Gold Plate": 0,
     Brick: 0,
-    Pistol: 1,
-    "Pistol Ammo": 12,
+    Pistol: 0,
+    "Pistol Ammo": 0,
     Wall: 0,
   })
   const inventoryRef = useRef(inventory)
