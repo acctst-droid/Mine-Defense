@@ -17,6 +17,11 @@ import Brick from "../../public/Brick.png"
 import Pistol from "../../public/Pistol.png"
 import PistolAmmo from "../../public/Pistol Ammo.png"
 import Wall from "../../public/Wall.png"
+import CoalGenerator from "../../public/Coal Generator.png"
+import CoalDrill from "../../public/Coal Drill.png"
+import CopperDrill from "../../public/Copper Drill.png"
+import BasicCircuit from "../../public/BasicCircuit.png"
+import BasicBattery from "../../public/BasicBattery.png"
 const Images = {
   Furnace: Furnace,
   Stone: Stone,
@@ -33,6 +38,11 @@ const Images = {
   Pistol: Pistol,
   "Pistol Ammo": PistolAmmo,
   Wall: Wall,
+  "Coal Generator": CoalGenerator,
+  "Coal Drill": CoalDrill,
+  "Copper Drill": CopperDrill,
+  "Basic Circuit": BasicCircuit,
+  "Basic Battery": BasicBattery,
 }
 
 const StoneOre = {
@@ -137,11 +147,60 @@ const WallCraft = {
   color: "#0d3b08",
   description: "+25 HP"
 }
+const CoalGeneratorCraft = {
+  item: "Coal Generator",
+  resource: "Iron Plate",
+  resourceNeeded: 5,
+  resource2: "Basic Circuit",
+  resourceNeeded2: 2,
+  color: "#222324",
+  description: "Energy generator"
+}
+const CoalDrillCraft = {
+  item: "Coal Drill",
+  resource: "Iron Plate",
+  resourceNeeded: 3,
+  resource2: "Basic Circuit",
+  resourceNeeded2: 3,
+  color: "#1f2021",
+  description: "Mine coal"
+}
+const CopperDrillCraft = {
+  item: "Copper Drill",
+  resource: "Iron Plate",
+  resourceNeeded: 6,
+  resource2: "Basic Circuit",
+  resourceNeeded2: 2,
+  color: "#783813",
+  description: "Mine copper"
+}
+const BasicCircuitCraft = {
+  item: "Basic Circuit",
+  resource: "Copper Plate",
+  resourceNeeded: 2,
+  resource2: null,
+  resourceNeeded2: null,
+  color: "#076e08",
+}
+const BasicBatteryCraft = {
+  item: "Basic Battery",
+  resource: "Iron Plate",
+  resourceNeeded: 6,
+  resource2: "Basic Circuit",
+  resourceNeeded2: 6,
+  color: "#783813",
+  description: "Stores energy"
+}
 const Craftables = {
   Furnace: FurnaceCraft,
   Pistol: PistolCraft,
   "Pistol Ammo": PistolAmmoCraft,
   Wall: WallCraft,
+  "Basic Circuit": BasicCircuitCraft,
+  "Basic Battery": BasicBatteryCraft,
+  "Coal Generator": CoalGeneratorCraft,
+  "Coal Drill": CoalDrillCraft,
+  "Copper Drill": CopperDrillCraft,
 }
 const MaxStack = {
   Stone: null,
@@ -159,6 +218,11 @@ const MaxStack = {
   Pistol: 1,
   "Pistol Ammo": null,
   Wall: null,
+  "Coal Generator": 1,
+  "Coal Drill": 1,
+  "Copper Drill": 1,
+  "Basic Circuit": null,
+  "Basic Battery": null,
 }
 const MeltingResults = {
   Iron: "Iron Plate",
@@ -189,14 +253,35 @@ export default function Home() {
     waving: false,
 
   })
+  const [energystatus, setEnergystatus] = useState({
+    capacity: 0,
+    energy: 0,
+  })
   const [lastmine, setLastMine] = useState(null)
   const [gameover, setgameover] = useState(false)
   const [miningBar, setMiningBar] = useState(null)
   const [startTime, setStartTime] = useState(null)
   const [openFurnace, setOpenFurnace] = useState(null)
   const [furnacesStatus, setfurnacesStatus] = useState({})
+  const [openCoalGenerator, setOpenCoalGenerator] = useState(null)
   const raidstatusref = useRef(raidStatus)
   const basehpref = useRef(basestatus)
+  const [coalGeneratorStatus, setCoalGeneratorStatus] = useState({})
+  const coalgeneratorref = useRef(coalGeneratorStatus)
+  const energystatusref = useRef(energystatus)
+  useEffect(() => {
+    energystatusref.current = energystatus
+  }, [energystatus])
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log(coalgeneratorref.current)
+    }, 3000);
+    return () => clearInterval(interval)
+
+  }, [])
+  useEffect(() => {
+    coalgeneratorref.current = coalGeneratorStatus
+  }, [coalGeneratorStatus])
   useEffect(() => {
     raidstatusref.current = raidStatus
   }, [raidStatus])
@@ -224,53 +309,52 @@ export default function Home() {
     Pistol: 0,
     "Pistol Ammo": 0,
     Wall: 0,
+    "Coal Generator": 0,
+    "Coal Drill": 0,
+    "Copper Drill": 0,
+    "Basic Circuit": 0,
+    "Basic Battery": 0,
   })
   const inventoryRef = useRef(inventory)
   useEffect(() => {
     inventoryRef.current = inventory
   }, [inventory])
-  useEffect(() => {
-    if (lastmine === null) return
 
-    const timetomine = OreCards[lastmine].timeToMine ?? 0;
-
-    const timeout = setTimeout(() => {
-      setInventory(prev => ({
-        ...prev,
-        [lastmine]: prev[lastmine] + 1,
-      }))
-      canMine(prev => !prev)
-      setLastMine(null)
-      setStartTime(null)
-    }, timetomine * 1000);
-
-    const interval = setInterval(() => {
-      const timepassed = Date.now() - (startTime ?? 0)
-      setMiningBar((timepassed / (timetomine * 1000)) * 100)
-    }, 50);
-    return () => {
-      clearInterval(interval)
-      clearTimeout(timeout)
-    }
-  }, [startTime])
   useEffect(() => {
     const interval = setInterval(() => {
+      let spentcoal = 0;
+      // ===== Lógica do primeiro useEffect (mineração) =====
+      if (lastmine !== null) {
+        const timetomine = OreCards[lastmine].timeToMine ?? 0;
+        const timepassed = Date.now() - (startTime ?? 0);
+
+        setMiningBar((timepassed / (timetomine * 1000)) * 100);
+
+        if (timepassed >= timetomine * 1000) {
+          setInventory(prev => ({
+            ...prev,
+            [lastmine]: prev[lastmine] + 1,
+          }));
+          canMine(prev => !prev);
+          setLastMine(null);
+          setStartTime(null);
+        }
+      }
+
+      // ===== Lógica do segundo useEffect (fornalhas) =====
       Object.entries(furnacesRef.current).forEach(([key, value]) => {
-        const canMelt = value.Input !== null
-        const hasAnDifferentOuput = (value.Output ?? false) !== (MeltingResults[value.Input] ?? false)
+        const canMelt = value.Input !== null;
+        const hasAnDifferentOuput = (value.Output ?? false) !== (MeltingResults[value.Input] ?? false);
 
         if (canMelt && inventoryRef.current.Coal > 0 && value.Quantity >= 1) {
-
           setfurnacesStatus(prev => ({
             ...prev,
             [key]: {
               ...prev[key],
               Melting: true,
-
-              TimeMelted: prev[key].TimeMelted + 0.1
-
+              TimeMelted: prev[key].TimeMelted + 0.1, // ajustado de 0.5 para 0.1 (100ms)
             }
-          }))
+          }));
         }
 
         if (value.TimeMelted >= value.TimeToMelt && canMelt && inventoryRef.current.Coal > 0) {
@@ -281,40 +365,91 @@ export default function Home() {
               TimeMelted: 0,
               Quantity: prev[key].Quantity - 1,
               OutputQuantity: prev[key].OutputQuantity + 1,
-              Output: MeltingResults[value.Input]
-
+              Output: MeltingResults[value.Input],
             }
-          }))
-          setInventory(prev => ({
-            ...prev,
-            Coal: prev.Coal - 1,
-          }))
+          }));
+         spentcoal +=1
         }
+      });
 
-      })
-    }, 100);
-    return () => {
-      clearInterval(interval)
-
-    }
-  }, [])
-  useEffect(() => {
-    const interval = setInterval(() => {
+      // ===== Lógica do terceiro useEffect (base HP regen) =====
       if (basehpref.current.basehp < basehpref.current.maxbasehp) {
         setbasehp(prev => ({
           ...prev,
-          basehp: prev.basehp + (prev.maxbasehp / 1000)
-        }))
+          basehp: prev.basehp + (prev.maxbasehp / 5000) // ajustado de /1000 para /5000 (100ms)
+        }));
       }
       if (basehpref.current.basehp > basehpref.current.maxbasehp) {
         setbasehp(prev => ({
           ...prev,
           basehp: prev.maxbasehp
+        }));
+      }
+
+      // ===== Lógica do quinto useEffect (coal generators) =====
+      Object.entries(coalgeneratorref.current).forEach(([key, value]) => {
+        if (!coalgeneratorref.current[key].Burning) return;
+        const coalgenref = coalgeneratorref.current;
+
+        if (coalgenref[key].TimeBurned >= 3) {
+          spentcoal +=1
+          setEnergystatus(prev => ({
+            ...prev,
+            energy: prev.energy + 5
+          }));
+          setCoalGeneratorStatus(prev => ({
+            ...prev,
+            [key]: {
+              ...prev[key],
+              TimeBurned: 0,
+            }
+          }));
+
+          if (inventoryRef.current.Coal <= 0) {
+            Object.entries(coalgeneratorref.current).forEach(([k, v]) => {
+              setCoalGeneratorStatus(prev => ({
+                ...prev,
+                [k]: { ...prev[k], Burning: false }
+              }));
+            });
+          }
+        }
+
+        if (inventoryRef.current.Coal > 0) {
+          setCoalGeneratorStatus(prev => ({
+            ...prev,
+            [key]: {
+              ...prev[key],
+              TimeBurned: prev[key].TimeBurned + 0.1 // ajustado de 0.5 para 0.1 (100ms)
+            }
+          }));
+        }
+      });
+
+      if (energystatusref.current.capacity < energystatusref.current.energy) {
+        setEnergystatus(prev => ({
+          ...prev,
+          energy: prev.capacity
+        }));
+      }
+      setInventory(prev => ({
+        ...prev,
+        Coal: prev.Coal - spentcoal
+      }))
+      if (inventoryRef.current.Coal < 0) {
+        setInventory(prev => ({
+          ...prev,
+          Coal: 0
         }))
       }
+      setEnergystatus(prev => ({
+        ...prev,
+        capacity: (inventoryRef.current["Basic Battery"] * 100)
+      }))
     }, 100);
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, [startTime, lastmine]);
+
   useEffect(() => {
     const minterval = setInterval(() => {
       const rsf = raidstatusref.current
@@ -381,6 +516,7 @@ export default function Home() {
     }, 1000);
     return () => clearInterval(minterval)
   }, [raidStatus])
+
   return (
     <>
       <div className="select-none flex justify-start items-center h-screen">
@@ -412,8 +548,12 @@ export default function Home() {
                 setLastMine(value.Ore)
               }
               }>Mine</button>}
-              {lastmine === value.Ore && <div className="relative bg-gray-200/60 rounded-[5px] w-full h-5 flex justify-start items-center">
-                <div className="bg-green-500 h-full rounded-[5px] transition-[width] duration-100 ease-linear" style={{ width: miningBar + "%" }}></div>
+              {lastmine === value.Ore && <div className="relative bg-gray-200/60 rounded-[5px] w-full h-5 flex justify-start items-center overflow-hidden">
+                <div
+                  key={lastmine + "-" + startTime}
+                  className="bg-green-500 h-full rounded-[5px] duration-100 ease-linear transition-[width]"
+                  style={{ width: (miningBar ?? 0) + "%" }}
+                ></div>
                 <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">{Math.round(miningBar ?? 0) + "%"}</span></div>}
               <div className="flex justify-center items-center flex-row gap-0.5">
                 <Clock></Clock>
@@ -423,14 +563,14 @@ export default function Home() {
           ))}
         </div>}
 
-        {activeGui === "Inventory" && <div className="relative z-20 w-300 h-150 p-6 bg-slate-900/80 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid grid-rows-2 grid-cols-6  justify-start flex-row items-start shadow-inner">
+        {activeGui === "Inventory" && <div className="relative z-20 w-300 h-150 p-6 bg-slate-900/80 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-auto gap-6 grid-cols-6  justify-start flex-row items-start shadow-inner">
           {Object.entries(inventory).map(([key, value]) => {
             if (value === 0) return null;
             if (!Images[key]) return null;
             if ((MaxStack[key] === null)) {
               return (
                 <div key={key} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60 rounded-2xl gap-2 p-3 ">
-                  <span className="text-[20px] font-bold">{key}</span>
+                  <span className="text-auto font-bold">{key}</span>
                   <Image src={Images[key]} alt={key} width={50} height={50}></Image>
                   <span className="text-bold text-2xl">{value}</span>
                 </div>
@@ -438,7 +578,7 @@ export default function Home() {
             } else if (key === "Furnace") {
               return Array.from({ length: value }, (_, i) => (
                 <div key={key + i} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3 ">
-                  <span className="text-2xl font-bold">{key}</span>
+                  <span className="text-auto font-bold">{key}</span>
                   <Image src={Images[key]} alt={key} width={50} height={50}></Image>
                   <button className="px-6 bg-green-500 rounded-2xl font-bold botaogenerico" onClick={() => {
                     setOpenFurnace(key + i)
@@ -446,16 +586,84 @@ export default function Home() {
 
                 </div>
               ))
-            } else {
+            } else if (key === "Coal Generator") {
+              return Array.from({ length: value }, (_, i) => (
+                <div key={key + i} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3">
+                  <span className="text-auto font-bold">{key}</span>
+                  <Image src={Images[key]} alt={key} width={50} height={50}></Image>
+                  <button className="px-6 bg-green-500 rounded-2xl font-bold botaogenerico" onClick={() => {
+                    setOpenCoalGenerator(key + i)
+                  }}>Use</button>
+
+                </div>
+
+
+              ))
+            }
+            else {
               return (
                 <div key={key} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60 rounded-2xl gap-2 p-3 ">
-                  <span className="text-[20px] font-bold">{key}</span>
+                  <span className="text-auto font-bold">{key}</span>
                   <Image src={Images[key]} alt={key} width={50} height={50}></Image>
                   <span className="text-bold text-2xl">{value}</span>
                 </div>
               )
             }
           })}
+          {openCoalGenerator !== null && <div className="absolute w-100 h-100 bg-zinc-600  top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 flex flex-col justify-start items-center gap-2 p-5 rounded-2xl">
+            <Image src={Images["Coal Generator"]} width={150} height={150} alt="Coal Generator"></Image>
+            <span className="w-10 h-10 absolute font-bold text-center flex justify-center items-center botaogenerico  text-3xl top-3 right-3 bg-red-500 rounded"
+              onClick={() => {
+                setOpenCoalGenerator(null)
+              }}
+            >X</span>
+            <div className="relative flex justify-start items-center h-10 w-80 rounded bg-zinc-300/60 overflow-hidden">
+              <span className="absolute left-1/2 -translate-x-1/2 text-auto font-bold z-10">{"3s"}</span>
+              {coalGeneratorStatus[openCoalGenerator]?.Burning && (
+                <div
+                  className="bg-green-500 h-10 rounded duration-100 ease-linear transition-[width]"
+                  style={{ width: ((coalGeneratorStatus[openCoalGenerator]?.TimeBurned ?? 0) / 3) * 100 + "%" }}
+                ></div>
+              )}
+            </div>
+
+            <button className={`${coalGeneratorStatus[openCoalGenerator].Burning ? "w-40 botaogenerico h-10 rounded-2xl font-bold text-auto bg-green-500" : "w-40 botaogenerico h-10 rounded-2xl font-bold text-auto bg-red-500"} `}
+              onClick={() => {
+                if (!coalGeneratorStatus[openCoalGenerator].Burning) {
+                  if (inventory.Coal > 0) {
+                    setInventory(prev => ({
+                      ...prev,
+                      Coal: prev.Coal - 1
+                    }))
+                    setCoalGeneratorStatus(prev => ({
+                      ...prev,
+                      [openCoalGenerator]: {
+
+
+                        ...prev[openCoalGenerator],
+                        Burning: true
+                      }
+
+                    }))
+                  }
+                } else {
+                  setCoalGeneratorStatus(prev => ({
+                    ...prev,
+                    [openCoalGenerator]: {
+                      ...prev[openCoalGenerator],
+                      Burning: false,
+                    }
+                  }))
+                }
+
+              }}
+            >Generate</button>
+            <div className="rounded h-20 w-20 bg-zinc-800/60 flex flex-col justify-center items-center">
+              <Image src={Images.Coal} width={70} height={70} alt="Coal Image"></Image></div>
+            <span className="font-bold text-2xl">{inventory.Coal}</span>
+            <span className="text-[15px]">Generate 5 Energy per coal</span>
+          </div>
+          }
           {openFurnace !== null && <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-120 h-100 bg-zinc-500 rounded-2xl flex flex-col justify-start items-center gap-2 p-5">
             <span className="w-10 h-10 absolute font-bold text-center flex justify-center items-center botaogenerico  text-3xl top-3 right-3 bg-red-500 rounded" onClick={() => {
               setOpenFurnace(null)
@@ -516,12 +724,20 @@ export default function Home() {
                     <Image src={Images[furnacesStatus[openFurnace].Input] ?? null} width={44} height={44} alt="Input"></Image>
                     <span className="">{furnacesStatus[openFurnace].Quantity}</span>
 
-                  </>
-                }</div>
-              <div className="rounded relative h-12 w-75 bg-zinc-300/60 flex justify-start items-center">
+                  </>}
+              </div>
+              <div className="rounded relative h-12 w-75 bg-zinc-300/60 flex justify-start items-center overflow-hidden">
                 {furnacesStatus[openFurnace].TimeMelted > 0 &&
-                  <span className="absolute left-1/2 -translate-x-1/2 text-2xl  font-bold">{Math.round(furnacesStatus[openFurnace].TimeToMelt - furnacesStatus[openFurnace].TimeMelted) + "s"}</span>}
-                <div className="bg-green-500 h-12 rounded transition-[width] ease-linear flex justify-center items-center " style={{ width: (furnacesStatus[openFurnace].TimeMelted / furnacesStatus[openFurnace].TimeToMelt) * 100 + "% " }}></div>
+                  <span className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold z-10">
+                    {Math.round(furnacesStatus[openFurnace].TimeToMelt - furnacesStatus[openFurnace].TimeMelted) + "s"}
+                  </span>}
+                {furnacesStatus[openFurnace].TimeMelted > 0 && furnacesStatus[openFurnace].TimeToMelt &&
+                  <div
+                    key={openFurnace + "-" + furnacesStatus[openFurnace].Quantity}
+                    className="bg-green-500 h-12 rounded duration-100 ease-linear transition-[width]"
+                    style={{ width: ((furnacesStatus[openFurnace].TimeMelted ?? 0) / (furnacesStatus[openFurnace].TimeToMelt ?? 1)) * 100 + "%" }}
+                  ></div>
+                }
               </div>
               <div className="rounded h-20 w-12 bg-zinc-800/60 flex flex-col justify-center items-center botaogenerico" onClick={() => {
                 if (furnacesStatus[openFurnace].OutputQuantity > 0) {
@@ -548,8 +764,7 @@ export default function Home() {
                     <Image src={Images[furnacesStatus[openFurnace].Output]} width={44} height={44} alt="Input"></Image>
                     <span className="">{furnacesStatus[openFurnace].OutputQuantity}</span>
 
-                  </>
-                }
+                  </>}
               </div>
             </div>
             <div className="rounded p-2 h-12 w-12 bg-zinc-800/60">
@@ -559,7 +774,7 @@ export default function Home() {
 
         </div>}
 
-        {activeGui === "Craft" && <div className="z-20 w-300 h-150 bg-slate-900/80 border border-slate-700/50 rounded-xl ml-10 gap-30  justify-start grid grid-rows-3 grid-cols-6 items-start shadow-inner">
+        {activeGui === "Craft" && <div className="z-20 w-300 h-150 p-6 bg-slate-900/80 overflow-y-auto overflow-x-hidden gap-6 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-min grid-cols-5 justify-start flex-row items-start shadow-inner">
           {Object.entries(Craftables).map(([key, value]) => {
             const inventoryresource = inventory[value.resource]
             const inventoryresource2 = inventory[value.resource2]
@@ -567,7 +782,7 @@ export default function Home() {
             const resourcephoto = Images[value.resource]
             const resourcephoto2 = Images[value.resource2]
             return (
-              <div className="w-50 h-60  justify-start items-center flex flex-col  p-3 rounded-2xl m-5 gap-1" style={{ backgroundColor: value.color }} key={key}>
+              <div className="w-50 h-80 justify-start items-center flex flex-col  p-3 rounded-2xl m-5 gap-1" style={{ backgroundColor: value.color }} key={key}>
                 <Image src={Images[value.item]} alt={value.item} height={70} width={70}></Image>
                 <span className="font-bold text-2xl">{value.item}</span>
                 <div className="flex flex-row justify-center items-center gap-1">
@@ -619,6 +834,17 @@ export default function Home() {
                           [resource2]: prev[value.resource2] - (value.resourceNeeded2 ?? 0),
                           [value.item]: prev[value.item] + 1,
                         }))
+                        if (key === "Coal Generator") {
+                          const coalgeneratorid = "Coal Generator" + inventory["Coal Generator"]
+                          setCoalGeneratorStatus(prev => ({
+                            ...prev,
+                            [coalgeneratorid]: {
+                              Burning: false,
+                              TimeBurned: 0,
+
+                            }
+                          }))
+                        }
                       }
                     }
                   }}>Craft</button>
@@ -634,7 +860,7 @@ export default function Home() {
               <span className="text-2xl font-bold">Wave level: {raidStatus.raidwave}</span>
               <span className=" text-2xl font-bold  ">Next wave: <TimeFormatter seconds={raidStatus.timeuntilraid - raidStatus.timepassed} /></span>
               <div className="flex justify-start items-center rounded relative bg-zinc-300/60">
-                <div className=" h-10 bg-green-500 rounded transition-[width] ease-linear" style={{ width: (basestatus.basehp / basestatus.maxbasehp) * 100 + "%" }}></div>
+                <div className=" h-10 bg-green-500 rounded transition-[width] duration-100 ease-linear" style={{ width: (basestatus.basehp / basestatus.maxbasehp) * 100 + "%" }}></div>
                 <span className="absolute font-bold text-2xl left-1/2 -translate-x-1/2">{Math.round(basestatus.basehp) + "/" + Math.round(basestatus.maxbasehp) + "HP"}</span>
               </div>
             </div>
@@ -644,11 +870,11 @@ export default function Home() {
               <span className=" text-2xl font-bold  ">MONSTERS ARE RAIDING!</span>
               <div className="flex justify-start items-center rounded relative bg-zinc-300/60">
                 <span className="absolute font-bold text-2xl left-1/2 -translate-x-1/2">{Math.round(basestatus.basehp) + "/" + Math.round(basestatus.maxbasehp) + "HP"}</span>
-                <div className=" h-10 bg-green-500 rounded transition-[width] ease-linear" style={{ width: (basestatus.basehp / basestatus.maxbasehp) * 100 + "%" }}></div>
+                <div className=" h-10 bg-green-500 rounded transition-[width] duration-100 ease-linear" style={{ width: (basestatus.basehp / basestatus.maxbasehp) * 100 + "%" }}></div>
               </div>
               <div className="flex  mt-2 justify-start items-center rounded relative bg-zinc-300/60">
                 <span className="absolute text-[20px] text-nowrap font-bold left-1/2 -translate-x-1/2">{"Monsters alive: " + Math.max(1, Math.round(raidStatus.monstersalive))}</span>
-                <div className=" h-10 bg-red-500 rounded transition-[width] ease-linear" style={{ width: (raidStatus.monstersalive / raidStatus.totalmonsters) * 100 + "%" }}></div>
+                <div className=" h-10 bg-red-500 rounded transition-[width] duration-100 ease-linear" style={{ width: (raidStatus.monstersalive / raidStatus.totalmonsters) * 100 + "%" }}></div>
               </div>
             </div>}
 
@@ -659,7 +885,12 @@ export default function Home() {
             <span className="text-6xl font-bold text-red-500">GAME OVER</span>
           </div>
         )}
-      </div>
+        {energystatus.capacity > 0 &&
+          <div className="absolute bg-zinc-300/80 bottom-2 flex justify-start items-center right-2 w-60 h-9 z-20 rounded-xl">
+            <div className="bg-amber-300 h-9 rounded-xl transition-[width] duration-100 ease-linear " style={{ width: (energystatus.energy / energystatus.capacity) * 100 + "%" }}>
+              <span className=" text-auto absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 text-zinc-900/50  font-bold">{Math.round(energystatus.energy) + "e/" + Math.round(energystatus.capacity) + "e"}</span></div></div>}
+
+      </div >
 
     </>
   );
@@ -675,7 +906,7 @@ export function TimeFormatter(props) {
     const paddedMinutes = String(minutes).padStart(2, '0');
     const paddedSeconds = String(remainingSeconds).padStart(2, '0');
 
-    return `${paddedMinutes}:${paddedSeconds}`;  // ✅
+    return `${paddedMinutes}:${paddedSeconds}`;
   };
 
   return formatTime(seconds);

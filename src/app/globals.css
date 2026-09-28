@@ -32,3 +32,13 @@ body {
 .botaogenerico:hover {
   transform: scale(1.05);
 }
+@keyframes fillBar {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+.fill-bar {
+  animation-name: fillBar;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
