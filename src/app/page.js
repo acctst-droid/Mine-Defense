@@ -181,7 +181,7 @@ export default function Home() {
     basehp: 100,
   })
   const [raidStatus, setRaidStatus] = useState({
-    timeuntilraid: 10,
+    timeuntilraid: 420,
     timepassed: 0,
     monstersalive: 0,
     totalmonsters: 0,
@@ -334,7 +334,7 @@ export default function Home() {
           totalmonsters: prev.raidwave * 2,
           waving: true,
           timepassed: 0,
-          timeuntilraid: 10,
+          timeuntilraid: 180,
         }))
 
       } else if (rsf.waving) {
