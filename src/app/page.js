@@ -75,15 +75,15 @@ export default function Home() {
 
   const [inventory, setInventory] = useState({
     Stone: 0,
-    Coal: 230,
+    Coal: 0,
     Copper: 0,
     Iron: 0,
     Gold: 0,
     Oil: 0,
     Uranium: 0,
     Furnace: 0,
-    "Iron Plate": 320,
-    "Copper Plate": 120,
+    "Iron Plate": 0,
+    "Copper Plate": 0,
     "Gold Plate": 0,
     Brick: 0,
     Pistol: 0,
@@ -96,8 +96,8 @@ export default function Home() {
     "Iron Drill": 0,
     "Gold Drill": 0,
     "Uranium Drill": 0,
-    "Basic Circuit": 10,
-    "Basic Battery": 1,
+    "Basic Circuit": 0,
+    "Basic Battery": 0,
   })
   const inventoryRef = useRef(inventory)
   useEffect(() => {
@@ -292,7 +292,7 @@ export default function Home() {
           totalmonsters: prev.raidwave * 2,
           waving: true,
           timepassed: 0,
-          timeuntilraid: 300,
+          timeuntilraid: 180,
         }))
 
       } else if (rsf.waving) {
