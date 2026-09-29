@@ -1,242 +1,11 @@
 'use client'
 import Image from "next/image";
-import { Pickaxe, Clock, PaperBag, Hammer, Key, Trash, Outdent } from "lucide-react";
+import { Pickaxe, Clock, PaperBag, Hammer, Key, Trash, Drill } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import Copper from "../../public/Copper.png";
-import Oil from "../../public/Oil.png";
-import Gold from "../../public/Gold.png"
-import Iron from "../../public/Iron.png"
-import Uranium from "../../public/Uranium.png"
-import Coal from "../../public/Coal.png"
-import Stone from "../../public/Stone.png"
-import Furnace from "../../public/Furnace.png"
-import IronPlate from "../../public/Iron Plate.png"
-import GoldPlate from "../../public/Gold Plate.png"
-import CopperPlate from "../../public/Copper Plate.png"
-import Brick from "../../public/Brick.png"
-import Pistol from "../../public/Pistol.png"
-import PistolAmmo from "../../public/Pistol Ammo.png"
-import Wall from "../../public/Wall.png"
-import CoalGenerator from "../../public/Coal Generator.png"
-import CoalDrill from "../../public/Coal Drill.png"
-import CopperDrill from "../../public/Copper Drill.png"
-import BasicCircuit from "../../public/BasicCircuit.png"
-import BasicBattery from "../../public/BasicBattery.png"
-const Images = {
-  Furnace: Furnace,
-  Stone: Stone,
-  Coal: Coal,
-  Copper: Copper,
-  Oil: Oil,
-  Gold: Gold,
-  Uranium: Uranium,
-  Iron: Iron,
-  "Iron Plate": IronPlate,
-  "Gold Plate": GoldPlate,
-  Brick: Brick,
-  "Copper Plate": CopperPlate,
-  Pistol: Pistol,
-  "Pistol Ammo": PistolAmmo,
-  Wall: Wall,
-  "Coal Generator": CoalGenerator,
-  "Coal Drill": CoalDrill,
-  "Copper Drill": CopperDrill,
-  "Basic Circuit": BasicCircuit,
-  "Basic Battery": BasicBattery,
-}
-
-const StoneOre = {
-  Ore: "Stone",
-  timeToMine: 1,
-  color: "#2B3E25",
-  Auto: false,
-  meltable: true,
-  melttime: 2,
-}
-const CopperOre = {
-  Ore: "Copper",
-  timeToMine: 3,
-  color: "#B87333",
-  Auto: false,
-  meltable: true,
-  melttime: 4
-}
-const IronOre = {
-  Ore: "Iron",
-  timeToMine: 6,
-  color: "#7b7a7d",
-  Auto: false,
-  meltable: true,
-  melttime: 6
-}
-const GoldOre = {
-  Ore: "Gold",
-  timeToMine: 10,
-  color: "#D4AF37",
-  Auto: false,
-  meltable: true,
-  melttime: 10,
-}
-const UraniumOre = {
-  Ore: "Uranium",
-  timeToMine: 20,
-  color: "#4CBB17",
-  Auto: false,
-  meltable: false,
-  melttime: null,
-}
-const OilMine = {
-  Ore: "Oil",
-  timeToMine: 10,
-  color: "#1a1a1a",
-  Auto: false,
-  meltable: false,
-  melttime: null,
-}
-const CoalOre = {
-  Ore: "Coal",
-  timeToMine: 1.5,
-  color: "#4F4F4F",
-  Auto: false,
-  meltable: false,
-  melttime: null,
-}
-
-const OreCards = {
-  Stone: StoneOre,
-  Coal: CoalOre,
-  Copper: CopperOre,
-  Iron: IronOre,
-  Gold: GoldOre,
-  Uranium: UraniumOre,
-  Oil: OilMine,
-}
-
-const FurnaceCraft = {
-  item: "Furnace",
-  resource: "Stone",
-  resourceNeeded: 10,
-  resource2: null,
-  resourceNeeded2: null,
-  color: "#5A5A5A",
-}
-const PistolCraft = {
-  item: "Pistol",
-  resource: "Iron Plate",
-  resourceNeeded: 5,
-  resource2: null,
-  resourceNeeded2: null,
-  color: "#4b4a4d",
-  description: "15 damage"
-
-}
-const PistolAmmoCraft = {
-  item: "Pistol Ammo",
-  resource: "Iron Plate",
-  resourceNeeded: 1,
-  resource2: null,
-  resourceNeeded2: null,
-  color: "#c7aa54"
-}
-const WallCraft = {
-  item: "Wall",
-  resource: "Brick",
-  resourceNeeded: 5,
-  resource2: null,
-  resourceNeeded2: null,
-  color: "#0d3b08",
-  description: "+25 HP"
-}
-const CoalGeneratorCraft = {
-  item: "Coal Generator",
-  resource: "Iron Plate",
-  resourceNeeded: 5,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 2,
-  color: "#222324",
-  description: "Energy generator"
-}
-const CoalDrillCraft = {
-  item: "Coal Drill",
-  resource: "Iron Plate",
-  resourceNeeded: 3,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 3,
-  color: "#1f2021",
-  description: "Mine coal"
-}
-const CopperDrillCraft = {
-  item: "Copper Drill",
-  resource: "Iron Plate",
-  resourceNeeded: 6,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 2,
-  color: "#783813",
-  description: "Mine copper"
-}
-const BasicCircuitCraft = {
-  item: "Basic Circuit",
-  resource: "Copper Plate",
-  resourceNeeded: 2,
-  resource2: null,
-  resourceNeeded2: null,
-  color: "#076e08",
-}
-const BasicBatteryCraft = {
-  item: "Basic Battery",
-  resource: "Iron Plate",
-  resourceNeeded: 6,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 6,
-  color: "#783813",
-  description: "Stores energy"
-}
-const Craftables = {
-  Furnace: FurnaceCraft,
-  Pistol: PistolCraft,
-  "Pistol Ammo": PistolAmmoCraft,
-  Wall: WallCraft,
-  "Basic Circuit": BasicCircuitCraft,
-  "Basic Battery": BasicBatteryCraft,
-  "Coal Generator": CoalGeneratorCraft,
-  "Coal Drill": CoalDrillCraft,
-  "Copper Drill": CopperDrillCraft,
-}
-const MaxStack = {
-  Stone: null,
-  Coal: null,
-  Copper: null,
-  Iron: null,
-  Gold: null,
-  Oil: null,
-  Uranium: null,
-  "Iron Plate": null,
-  "Gold Plate": null,
-  "Copper Plate": null,
-  "Brick": null,
-  Furnace: 1,
-  Pistol: 1,
-  "Pistol Ammo": null,
-  Wall: null,
-  "Coal Generator": 1,
-  "Coal Drill": "Drill",
-  "Copper Drill": "Drill",
-  "Basic Circuit": null,
-  "Basic Battery": null,
-}
-const MeltingResults = {
-  Iron: "Iron Plate",
-  Copper: "Copper Plate",
-  Gold: "Gold Plate",
-  Stone: "Brick",
-
-}
-const Guns = {
-  Pistol: {
-    damage: 15,
-    ammo: "Pistol Ammo"
-  },
-}
+import {
+  Images, Craftables, MaxStack, OreCards,
+  MeltingResults, Guns, DrillEnergyNeeded
+} from "./gamedata.js"
 export default function Home() {
   const [activeGui, setActiveGui] = useState(null)
   const [mine, canMine] = useState(true)
@@ -258,6 +27,7 @@ export default function Home() {
     energy: 0,
   })
   const [lastmine, setLastMine] = useState(null)
+  const [drillstatus, setdrillstatus] = useState({})
   const [gameover, setgameover] = useState(false)
   const [miningBar, setMiningBar] = useState(null)
   const [startTime, setStartTime] = useState(null)
@@ -269,6 +39,18 @@ export default function Home() {
   const [coalGeneratorStatus, setCoalGeneratorStatus] = useState({})
   const coalgeneratorref = useRef(coalGeneratorStatus)
   const energystatusref = useRef(energystatus)
+  const lastmineref = useRef(lastmine)
+  const starttimeref = useRef(startTime)
+  const drillstatusref = useRef(drillstatus)
+  useEffect(() => {
+    drillstatusref.current = drillstatus
+  }, [drillstatus])
+  useEffect(() => {
+    starttimeref.current = startTime
+  }, [startTime])
+  useEffect(() => {
+    lastmineref.current = lastmine
+  })
   useEffect(() => {
     energystatusref.current = energystatus
   }, [energystatus])
@@ -276,7 +58,6 @@ export default function Home() {
     const interval = setInterval(() => {
     }, 3000);
     return () => clearInterval(interval)
-
   }, [])
   useEffect(() => {
     coalgeneratorref.current = coalGeneratorStatus
@@ -309,8 +90,12 @@ export default function Home() {
     "Pistol Ammo": 0,
     Wall: 0,
     "Coal Generator": 0,
+    "Stone Drill": 0,
     "Coal Drill": 0,
     "Copper Drill": 0,
+    "Iron Drill": 0,
+    "Gold Drill": 0,
+    "Uranium Drill": 0,
     "Basic Circuit": 0,
     "Basic Battery": 0,
   })
@@ -323,17 +108,22 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       let spentcoal = 0;
+      const availableenergy = energystatusref.current.energy
+
+      let energyspent = 0;
+      let energygain = 0;
+
       // ===== Lógica do primeiro useEffect (mineração) =====
-      if (lastmine !== null) {
-        const timetomine = OreCards[lastmine].timeToMine ?? 0;
-        const timepassed = Date.now() - (startTime ?? 0);
+      if (lastmineref.current !== null) {
+        const timetomine = OreCards[lastmineref.current].timeToMine ?? 0;
+        const timepassed = Date.now() - (starttimeref.current ?? 0);
 
         setMiningBar((timepassed / (timetomine * 1000)) * 100);
 
         if (timepassed >= timetomine * 1000) {
           setInventory(prev => ({
             ...prev,
-            [lastmine]: prev[lastmine] + 1,
+            [lastmineref.current]: prev[lastmineref.current] + 1,
           }));
           canMine(prev => !prev);
           setLastMine(null);
@@ -368,7 +158,7 @@ export default function Home() {
               Output: MeltingResults[value.Input],
             }
           }));
-         spentcoal +=1
+          spentcoal += 1
         }
       });
 
@@ -389,14 +179,13 @@ export default function Home() {
       // ===== Lógica do quinto useEffect (coal generators) =====
       Object.entries(coalgeneratorref.current).forEach(([key, value]) => {
         if (!coalgeneratorref.current[key].Burning) return;
+
         const coalgenref = coalgeneratorref.current;
 
         if (coalgenref[key].TimeBurned >= 3) {
-          spentcoal +=1
-          setEnergystatus(prev => ({
-            ...prev,
-            energy: prev.energy + 5
-          }));
+
+          spentcoal += 1
+          energygain += 5
           setCoalGeneratorStatus(prev => ({
             ...prev,
             [key]: {
@@ -425,7 +214,31 @@ export default function Home() {
           }));
         }
       });
-
+      Object.entries(drillstatusref.current).forEach(([key, value]) => {
+        if (drillstatusref.current[key].Mining && availableenergy >= DrillEnergyNeeded[drillstatusref.current[key].Ore]) {
+          energyspent = energyspent + (DrillEnergyNeeded[drillstatusref.current[key].Ore] / 10  )
+          setdrillstatus(prev => ({
+            ...prev,
+            [key]: {
+              ...prev[key],
+              timemined: prev[key].timemined + 0.1
+            }
+          }))
+          if (drillstatusref.current[key].timemined >= drillstatusref.current[key].timetomine) {
+            setdrillstatus(prev => ({
+              ...prev,
+              [key]: {
+                ...prev[key],
+                timemined: 0,
+              }
+            }))
+            setInventory(prev => ({
+              ...prev,
+              [drillstatusref.current[key].Ore]: prev[drillstatusref.current[key].Ore] + 1
+            }))
+          }
+        }
+      })
       if (energystatusref.current.capacity < energystatusref.current.energy) {
         setEnergystatus(prev => ({
           ...prev,
@@ -442,13 +255,15 @@ export default function Home() {
           Coal: 0
         }))
       }
+      let energychange = energygain - energyspent
       setEnergystatus(prev => ({
         ...prev,
-        capacity: (inventoryRef.current["Basic Battery"] * 100)
+        energy: prev.energy + energychange,
+        capacity: (inventoryRef.current["Basic Battery"] * 100),
       }))
     }, 100);
     return () => clearInterval(interval);
-  }, [startTime, lastmine]);
+  }, []);
 
   useEffect(() => {
     const minterval = setInterval(() => {
@@ -535,6 +350,11 @@ export default function Home() {
           >
             <Hammer></Hammer>
             <span className="text-2xl">Craft</span>
+          </div>
+          <div className="mt-5 bg-[#c25710] cursor-pointer flex justify-center items-center gap-1 h-10 w-40 rounded-xl drop-shadow-2xl botaogenerico" onClick={() => setActiveGui(prev => prev === "Drill" ? null : "Drill")}
+          >
+            <Drill></Drill>
+            <span className="text-2xl">Drill</span>
           </div>
         </div>
         {activeGui === "Mine" && <div className=" w-300 z-20 h-150 bg-slate-900/80 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid grid-rows-2 grid-cols-6  justify-start flex-row items-start shadow-inner">
@@ -712,7 +532,7 @@ export default function Home() {
                         ...prev,
                         [value.Ore]: prev[value.Ore] - 1
                       }))
-                  
+
                     }}>
                     <Image className="mt-2" src={Images[value.Ore]} height={30} width={30} alt={value.Ore}></Image>
                     <span>{inventory[value.Ore]}</span>
@@ -776,7 +596,7 @@ export default function Home() {
 
         </div>}
 
-        {activeGui === "Craft" && <div className="z-20 w-300 h-150 p-6 bg-slate-900/80 overflow-y-auto overflow-x-hidden gap-6 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-min grid-cols-5 justify-start flex-row items-start shadow-inner">
+        {activeGui === "Craft" && <div className="z-20 w-300 h-150 p-6 bg-slate-900/80 overflow-y-auto overflow-x-hidden gap-6 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-min grid-cols-5 justify-start items-start shadow-inner">
           {Object.entries(Craftables).map(([key, value]) => {
             const inventoryresource = inventory[value.resource]
             const inventoryresource2 = inventory[value.resource2]
@@ -792,13 +612,13 @@ export default function Home() {
                   <span className={` ${inventoryresource >= value.resourceNeeded ? "text-white" : "text-red-500"}`}
                   >{value.resourceNeeded + " " + value.resource + " (" + inventoryresource + ")"}</span>
                 </div>
-                {value.resource2 && <div className="flex flex-row justify-center items-center gap-1">
+                {value.resource2 && (<div className="flex flex-row justify-center items-center gap-1">
                   <Image src={resourcephoto2} alt={value.resource2} height={30} width={30}></Image>
                   <span className={` ${inventoryresource2 >= (value.resourceNeeded2 ?? 0) ? "text-white" : "text-red-500"}`}
                   >{value.resourceNeeded2 + " " + value.resource2 + " (" + inventoryresource2 + ")"}</span>
                 </div>
 
-                }
+                )}
 
                 <button className="mt-2 bg-green-500 rounded-2xl botaogenerico font-bold text-2xl px-6"
                   onClick={() => {
@@ -846,6 +666,22 @@ export default function Home() {
 
                             }
                           }))
+
+                        }
+                        if (key.includes("Drill")) {
+
+                          const drillid = key + inventory[key]
+                          setdrillstatus(prev => ({
+                            ...prev,
+                            [drillid]: {
+                              Mining: false,
+                              timetomine: OreCards[key.split(" ")[0]].timeToMine * 2,
+                              timemined: 0,
+                              Ore: OreCards[key.split(" ")[0]].Ore,
+
+                            }
+                          }))
+                          console.log(drillstatus)
                         }
                       }
                     }
@@ -853,6 +689,49 @@ export default function Home() {
                 <span className="font-bold mt-2">{Craftables[key].description ?? ""}</span>
               </div>
             )
+          })}
+        </div>}
+
+        {activeGui === "Drill" && <div className="z-20 w-300 h-150 p-6 bg-slate-900/80 overflow-y-auto overflow-x-hidden gap-6 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-min grid-cols-5 justify-start  items-start shadow-inner">
+          {Object.entries(inventory).map(([key, value]) => {
+            if (!key.includes("Drill")) return null;
+            if (value === 0) return null;
+            const orename = key.split(" ")[0]
+            return Array.from({ length: value }, (_, i) => {
+              const drillid = key + i
+              return <div key={key + i} className="w-50 h-90 rounded-2xl flex justify-start p-5 gap-3 flex-col items-center" style={{ backgroundColor: Craftables[key].color }}>
+                <span className="text-2xl font-bold">{key}</span>
+                <Image width={150} height={150} src={Images[key]} alt="Drill Image"></Image>
+                <button className={`${drillstatus[drillid].Mining ? "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-green-500" : "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-red-500"}`}
+                  onClick={() => {
+                    if (!drillstatus[drillid].Mining) {
+                      setdrillstatus(prev => ({
+                        ...prev,
+                        [drillid]: {
+                          ...prev[drillid],
+                          Mining: true,
+                        }
+                      }))
+                    } else {
+                      setdrillstatus(prev => ({
+                        ...prev,
+                        [drillid]: {
+                          ...prev[drillid],
+                          Mining: false,
+                        }
+                      }))
+                    }
+
+                  }}
+
+                >Mine</button>
+                <span>{"Spent " + DrillEnergyNeeded[orename] + "e per second"}</span>
+                <div className="w-40 overflow-hidden h-7 relative flex justify-start  items-center bg-zinc-300/60 rounded-2xl">
+                  <span className="absolute left-1/2 font-bold -translate-x-1/2">{Math.round(drillstatus[drillid].timetomine - drillstatus[drillid].timemined) +"s"}</span>
+                  <div className=" h-7  bg-green-500 transition-[width] ease-linear duration-100 rounded-xl" style={{ width: (drillstatus[drillid].timemined / drillstatus[drillid].timetomine) * 100 + "%" }}></div>
+                </div>
+              </div>
+            })
           })}
         </div>}
         <div className="absolute top-1 left-1/2 -translate-x-1/2">
@@ -888,7 +767,8 @@ export default function Home() {
           </div>
         )}
         {energystatus.capacity > 0 &&
-          <div className="absolute bg-zinc-300/80 bottom-2 flex justify-start items-center right-2 w-60 h-9 z-20 rounded-xl">
+
+          <div className="absolute bg-zinc-300/80 bottom-2 flex justify-start overflow-hidden  items-center right-2 w-60 h-9 z-20 rounded-xl">
             <div className="bg-amber-300 h-9 rounded-xl transition-[width] duration-100 ease-linear " style={{ width: (energystatus.energy / energystatus.capacity) * 100 + "%" }}>
               <span className=" text-auto absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 text-zinc-900/50  font-bold">{Math.round(energystatus.energy) + "e/" + Math.round(energystatus.capacity) + "e"}</span></div></div>}
 
