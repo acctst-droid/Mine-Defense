@@ -39,7 +39,6 @@ export const Images = {
   "Pistol Ammo": PistolAmmo,
   Wall: Wall,
   "Coal Generator": CoalGenerator,
-  "Stone Drill": StoneDrill,
   "Coal Drill": CoalDrill,
   "Copper Drill": CopperDrill,
   "Iron Drill": IronDrill,
@@ -52,49 +51,49 @@ export const Images = {
 
 export const StoneOre = {
   Ore: "Stone",
-  timeToMine: 1,
+  timeToMine: 0.5,
   color: "#2B3E25",
   meltable: true,
-  melttime: 2,
+  melttime: 1,
 }
 export const CopperOre = {
   Ore: "Copper",
-  timeToMine: 3,
+  timeToMine: 2,
   color: "#B87333",
   meltable: true,
-  melttime: 4
+  melttime: 2
 }
 export const IronOre = {
   Ore: "Iron",
-  timeToMine: 6,
+  timeToMine: 3,
   color: "#7b7a7d",
   meltable: true,
-  melttime: 6
+  melttime: 3
 }
 export const GoldOre = {
   Ore: "Gold",
-  timeToMine: 10,
+  timeToMine: 5,
   color: "#D4AF37",
   meltable: true,
-  melttime: 10,
+  melttime: 5,
 }
 export const UraniumOre = {
   Ore: "Uranium",
-  timeToMine: 20,
+  timeToMine: 10,
   color: "#4CBB17",
   meltable: false,
   melttime: null,
 }
 export const OilMine = {
   Ore: "Oil",
-  timeToMine: 10,
+  timeToMine: 5,
   color: "#1a1a1a",
   meltable: false,
   melttime: null,
 }
 export const CoalOre = {
   Ore: "Coal",
-  timeToMine: 1.5,
+  timeToMine: 1,
   color: "#4F4F4F",
   meltable: false,
   melttime: null,
@@ -143,7 +142,7 @@ export const WallCraft = {
   resource2: null,
   resourceNeeded2: null,
   color: "#0d3b08",
-  description: "+25 HP"
+  description: "+10 HP"
 }
 export const CoalGeneratorCraft = {
   item: "Coal Generator",
@@ -280,10 +279,10 @@ export const Guns = {
   },
 }
 export const DrillEnergyNeeded = {
-  Coal: 2,
-  Copper: 2,
+  Coal: 3,
+  Copper: 3,
   Iron: 5,
-  Gold: 8,
+  Gold: 10,
   Uranium: 20,
   Stone: 1,
 } 

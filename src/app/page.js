@@ -14,7 +14,7 @@ export default function Home() {
     basehp: 100,
   })
   const [raidStatus, setRaidStatus] = useState({
-    timeuntilraid: 420,
+    timeuntilraid: 600,
     timepassed: 0,
     monstersalive: 0,
     totalmonsters: 0,
@@ -75,15 +75,15 @@ export default function Home() {
 
   const [inventory, setInventory] = useState({
     Stone: 0,
-    Coal: 0,
+    Coal: 230,
     Copper: 0,
     Iron: 0,
     Gold: 0,
     Oil: 0,
     Uranium: 0,
     Furnace: 0,
-    "Iron Plate": 0,
-    "Copper Plate": 0,
+    "Iron Plate": 320,
+    "Copper Plate": 120,
     "Gold Plate": 0,
     Brick: 0,
     Pistol: 0,
@@ -96,8 +96,8 @@ export default function Home() {
     "Iron Drill": 0,
     "Gold Drill": 0,
     "Uranium Drill": 0,
-    "Basic Circuit": 0,
-    "Basic Battery": 0,
+    "Basic Circuit": 10,
+    "Basic Battery": 1,
   })
   const inventoryRef = useRef(inventory)
   useEffect(() => {
@@ -185,7 +185,7 @@ export default function Home() {
         if (coalgenref[key].TimeBurned >= 3) {
 
           spentcoal += 1
-          energygain += 5
+          energygain += 30
           setCoalGeneratorStatus(prev => ({
             ...prev,
             [key]: {
@@ -268,7 +268,7 @@ export default function Home() {
   useEffect(() => {
     const minterval = setInterval(() => {
       const rsf = raidstatusref.current
-      const maxbasehpcalc = 100 + (inventoryRef.current.Wall * 25)
+      const maxbasehpcalc = 100 + (inventoryRef.current.Wall * 10)
       setbasehp(prev => ({
         ...prev,
         maxbasehp: maxbasehpcalc
@@ -284,7 +284,7 @@ export default function Home() {
           totalmonsters: prev.raidwave * 2,
           waving: true,
           timepassed: 0,
-          timeuntilraid: 180,
+          timeuntilraid: 300,
         }))
 
       } else if (rsf.waving) {
@@ -379,6 +379,7 @@ export default function Home() {
                 <Clock></Clock>
                 <span>{value.timeToMine + "s"}</span>
               </div>
+                <span className="font-bold">{inventory[value.Ore]}</span>
             </div>
           ))}
         </div>}
@@ -483,7 +484,7 @@ export default function Home() {
             <div className="rounded h-20 w-20 bg-zinc-800/60 flex flex-col justify-center items-center">
               <Image src={Images.Coal} width={70} height={70} alt="Coal Image"></Image></div>
             <span className="font-bold text-2xl">{inventory.Coal}</span>
-            <span className="text-[15px]">Generate 5 Energy per coal</span>
+            <span className="text-[15px]">Generate 30 Energy per coal</span>
           </div>
           }
           {openFurnace !== null && <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-120 h-100 bg-zinc-500 rounded-2xl flex flex-col justify-start items-center gap-2 p-5">
@@ -524,13 +525,13 @@ export default function Home() {
                           TimeToMelt: value.melttime,
                           TimeMelted: prev[openFurnace].TimeMelted,
                           Input: value.Ore,
-                          Quantity: prev[openFurnace].Quantity + 1,
+                          Quantity: prev[openFurnace].Quantity + inventory[value.Ore],
                           Output: MeltingResults[value.Ore]
                         }
                       }))
                       setInventory(prev => ({
                         ...prev,
-                        [value.Ore]: prev[value.Ore] - 1
+                        [value.Ore]: 0
                       }))
 
                     }}>
