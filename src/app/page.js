@@ -219,8 +219,8 @@ const MaxStack = {
   "Pistol Ammo": null,
   Wall: null,
   "Coal Generator": 1,
-  "Coal Drill": 1,
-  "Copper Drill": 1,
+  "Coal Drill": "Drill",
+  "Copper Drill": "Drill",
   "Basic Circuit": null,
   "Basic Battery": null,
 }
@@ -274,7 +274,6 @@ export default function Home() {
   }, [energystatus])
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log(coalgeneratorref.current)
     }, 3000);
     return () => clearInterval(interval)
 
@@ -319,6 +318,7 @@ export default function Home() {
   useEffect(() => {
     inventoryRef.current = inventory
   }, [inventory])
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -515,7 +515,7 @@ export default function Home() {
       }
     }, 1000);
     return () => clearInterval(minterval)
-  }, [raidStatus])
+  }, [])
 
   return (
     <>
@@ -601,6 +601,8 @@ export default function Home() {
               ))
             }
             else {
+              if (MaxStack[key] === "Drill") return null;
+
               return (
                 <div key={key} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60 rounded-2xl gap-2 p-3 ">
                   <span className="text-auto font-bold">{key}</span>
@@ -710,7 +712,7 @@ export default function Home() {
                         ...prev,
                         [value.Ore]: prev[value.Ore] - 1
                       }))
-                      console.log(furnacesStatus)
+                  
                     }}>
                     <Image className="mt-2" src={Images[value.Ore]} height={30} width={30} alt={value.Ore}></Image>
                     <span>{inventory[value.Ore]}</span>
