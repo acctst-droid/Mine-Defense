@@ -216,7 +216,7 @@ export default function Home() {
       });
       Object.entries(drillstatusref.current).forEach(([key, value]) => {
         if (drillstatusref.current[key].Mining && availableenergy >= DrillEnergyNeeded[drillstatusref.current[key].Ore]) {
-          energyspent = energyspent + (DrillEnergyNeeded[drillstatusref.current[key].Ore] / 10  )
+          energyspent = energyspent + (DrillEnergyNeeded[drillstatusref.current[key].Ore] / 10)
           setdrillstatus(prev => ({
             ...prev,
             [key]: {
@@ -268,11 +268,19 @@ export default function Home() {
   useEffect(() => {
     const minterval = setInterval(() => {
       const rsf = raidstatusref.current
-      const maxbasehpcalc = 100 + (inventoryRef.current.Wall * 10)
+      const baseHp = 100;
+      const hpPerWall = 10;
+      const MAX_BASE_HP_LIMIT = 3000; 
+      const maxbasehpcalc = Math.min(
+
+        MAX_BASE_HP_LIMIT,
+        baseHp + (inventoryRef.current.Wall * hpPerWall)
+      );
+
       setbasehp(prev => ({
         ...prev,
         maxbasehp: maxbasehpcalc
-      }))
+      }));
       setRaidStatus(prev => ({
         ...prev,
         timepassed: prev.timepassed + 1
@@ -379,7 +387,7 @@ export default function Home() {
                 <Clock></Clock>
                 <span>{value.timeToMine + "s"}</span>
               </div>
-                <span className="font-bold">{inventory[value.Ore]}</span>
+              <span className="font-bold">{inventory[value.Ore]}</span>
             </div>
           ))}
         </div>}
@@ -728,7 +736,7 @@ export default function Home() {
                 >Mine</button>
                 <span>{"Spent " + DrillEnergyNeeded[orename] + "e per second"}</span>
                 <div className="w-40 overflow-hidden h-7 relative flex justify-start  items-center bg-zinc-300/60 rounded-2xl">
-                  <span className="absolute left-1/2 font-bold -translate-x-1/2">{Math.round(drillstatus[drillid].timetomine - drillstatus[drillid].timemined) +"s"}</span>
+                  <span className="absolute left-1/2 font-bold -translate-x-1/2">{Math.round(drillstatus[drillid].timetomine - drillstatus[drillid].timemined) + "s"}</span>
                   <div className=" h-7  bg-green-500 transition-[width] ease-linear duration-100 rounded-xl" style={{ width: (drillstatus[drillid].timemined / drillstatus[drillid].timetomine) * 100 + "%" }}></div>
                 </div>
               </div>

@@ -138,11 +138,11 @@ export const PistolAmmoCraft = {
 export const WallCraft = {
   item: "Wall",
   resource: "Brick",
-  resourceNeeded: 5,
+  resourceNeeded: 10,
   resource2: null,
   resourceNeeded2: null,
   color: "#0d3b08",
-  description: "+10 HP"
+  description: "+10 HP (up to 3000)"
 }
 export const CoalGeneratorCraft = {
   item: "Coal Generator",
