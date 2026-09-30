@@ -6,114 +6,94 @@ import {
   Images, Craftables, MaxStack, OreCards,
   MeltingResults, Guns, DrillEnergyNeeded
 } from "./gamedata.js"
+
 export default function Home() {
+  const [gamestatus, setGamestatus] = useState({
+    inventory: {
+      Stone: 0,
+      Coal: 0,
+      Copper: 0,
+      Iron: 0,
+      Gold: 0,
+      Oil: 0,
+      Uranium: 0,
+      Furnace: 0,
+      "Iron Plate": 0,
+      "Copper Plate": 0,
+      "Gold Plate": 0,
+      Brick: 0,
+      Pistol: 0,
+      "Pistol Ammo": 0,
+      Wall: 0,
+      "Coal Generator": 0,
+      "Stone Drill": 0,
+      "Coal Drill": 0,
+      "Copper Drill": 0,
+      "Iron Drill": 0,
+      "Gold Drill": 0,
+      "Uranium Drill": 0,
+      "Basic Circuit": 0,
+      "Basic Battery": 0,
+    },
+    raidStatus: {
+      timeuntilraid: 600,
+      timepassed: 0,
+      monstersalive: 0,
+      totalmonsters: 0,
+      raidwave: 1,
+      waving: false,
+    },
+    energystatus: {
+      capacity: 0,
+      energy: 0,
+      spent: 0,
+      gain: 0,
+    },
+    basestatus: {
+      maxbasehp: 100,
+      basehp: 100,
+    },
+    drillstatus: {},
+    furnacesStatus: {},
+    coalGeneratorStatus: {},
+  })
+
+  const gamestatusref = useRef(gamestatus)
+  useEffect(() => { gamestatusref.current = gamestatus }, [gamestatus])
+  useEffect(() => {
+    const gamedata = JSON.parse(localStorage.getItem("gamestatus"))
+    if (gamedata !== null) {
+      setGamestatus(gamedata)
+    }
+  }, [])
+  useEffect(() => {
+    const interval = setInterval(() => {
+      localStorage.setItem("gamestatus", JSON.stringify(gamestatusref.current))
+    }, 5000);
+    return () => clearInterval(interval)
+  }, [])
   const [activeGui, setActiveGui] = useState(null)
   const [mine, canMine] = useState(true)
-  const [basestatus, setbasehp] = useState({
-    maxbasehp: 100,
-    basehp: 100,
-  })
-  const [raidStatus, setRaidStatus] = useState({
-    timeuntilraid: 600,
-    timepassed: 0,
-    monstersalive: 0,
-    totalmonsters: 0,
-    raidwave: 1,
-    waving: false,
-
-  })
-  const [energystatus, setEnergystatus] = useState({
-    capacity: 0,
-    energy: 0,
-  })
   const [lastmine, setLastMine] = useState(null)
-  const [drillstatus, setdrillstatus] = useState({})
-  const [gameover, setgameover] = useState(false)
   const [miningBar, setMiningBar] = useState(null)
   const [startTime, setStartTime] = useState(null)
   const [openFurnace, setOpenFurnace] = useState(null)
-  const [furnacesStatus, setfurnacesStatus] = useState({})
   const [openCoalGenerator, setOpenCoalGenerator] = useState(null)
-  const raidstatusref = useRef(raidStatus)
-  const basehpref = useRef(basestatus)
-  const [coalGeneratorStatus, setCoalGeneratorStatus] = useState({})
-  const coalgeneratorref = useRef(coalGeneratorStatus)
-  const energystatusref = useRef(energystatus)
+  const [gameover, setgameover] = useState(false)
+
   const lastmineref = useRef(lastmine)
+  useEffect(() => { lastmineref.current = lastmine }, [lastmine])
   const starttimeref = useRef(startTime)
-  const drillstatusref = useRef(drillstatus)
-  useEffect(() => {
-    drillstatusref.current = drillstatus
-  }, [drillstatus])
-  useEffect(() => {
-    starttimeref.current = startTime
-  }, [startTime])
-  useEffect(() => {
-    lastmineref.current = lastmine
-  })
-  useEffect(() => {
-    energystatusref.current = energystatus
-  }, [energystatus])
-  useEffect(() => {
-    const interval = setInterval(() => {
-    }, 3000);
-    return () => clearInterval(interval)
-  }, [])
-  useEffect(() => {
-    coalgeneratorref.current = coalGeneratorStatus
-  }, [coalGeneratorStatus])
-  useEffect(() => {
-    raidstatusref.current = raidStatus
-  }, [raidStatus])
-  useEffect(() => {
-    basehpref.current = basestatus
-  }, [basestatus])
-  const furnacesRef = useRef(furnacesStatus)
-  useEffect(() => {
-    furnacesRef.current = furnacesStatus
-  }, [furnacesStatus])
-
-  const [inventory, setInventory] = useState({
-    Stone: 0,
-    Coal: 0,
-    Copper: 0,
-    Iron: 0,
-    Gold: 0,
-    Oil: 0,
-    Uranium: 0,
-    Furnace: 0,
-    "Iron Plate": 0,
-    "Copper Plate": 0,
-    "Gold Plate": 0,
-    Brick: 0,
-    Pistol: 0,
-    "Pistol Ammo": 0,
-    Wall: 0,
-    "Coal Generator": 0,
-    "Stone Drill": 0,
-    "Coal Drill": 0,
-    "Copper Drill": 0,
-    "Iron Drill": 0,
-    "Gold Drill": 0,
-    "Uranium Drill": 0,
-    "Basic Circuit": 0,
-    "Basic Battery": 0,
-  })
-  const inventoryRef = useRef(inventory)
-  useEffect(() => {
-    inventoryRef.current = inventory
-  }, [inventory])
-
+  useEffect(() => { starttimeref.current = startTime }, [startTime])
 
   useEffect(() => {
     const interval = setInterval(() => {
       let spentcoal = 0;
-      const availableenergy = energystatusref.current.energy
-
+      const availableenergy = gamestatusref.current.energystatus.energy
       let energyspent = 0;
       let energygain = 0;
 
-      // ===== Lógica do primeiro useEffect (mineração) =====
+      // ===== Mineração manual =====
       if (lastmineref.current !== null) {
         const timetomine = OreCards[lastmineref.current].timeToMine ?? 0;
         const timepassed = Date.now() - (starttimeref.current ?? 0);
@@ -121,9 +101,10 @@ export default function Home() {
         setMiningBar((timepassed / (timetomine * 1000)) * 100);
 
         if (timepassed >= timetomine * 1000) {
-          setInventory(prev => ({
+          const ore = lastmineref.current
+          setGamestatus(prev => ({
             ...prev,
-            [lastmineref.current]: prev[lastmineref.current] + 1,
+            inventory: { ...prev.inventory, [ore]: prev.inventory[ore] + 1 }
           }));
           canMine(prev => !prev);
           setLastMine(null);
@@ -131,135 +112,155 @@ export default function Home() {
         }
       }
 
-      // ===== Lógica do segundo useEffect (fornalhas) =====
-      Object.entries(furnacesRef.current).forEach(([key, value]) => {
+      // ===== Fornalhas =====
+      Object.entries(gamestatusref.current.furnacesStatus).forEach(([key, value]) => {
         const canMelt = value.Input !== null;
-        const hasAnDifferentOuput = (value.Output ?? false) !== (MeltingResults[value.Input] ?? false);
 
-        if (canMelt && inventoryRef.current.Coal > 0 && value.Quantity >= 1) {
-          setfurnacesStatus(prev => ({
+        if (canMelt && gamestatusref.current.inventory.Coal > 0 && value.Quantity >= 1) {
+          setGamestatus(prev => ({
             ...prev,
-            [key]: {
-              ...prev[key],
-              Melting: true,
-              TimeMelted: prev[key].TimeMelted + 0.1, // ajustado de 0.5 para 0.1 (100ms)
+            furnacesStatus: {
+              ...prev.furnacesStatus,
+              [key]: {
+                ...prev.furnacesStatus[key],
+                Melting: true,
+                TimeMelted: prev.furnacesStatus[key].TimeMelted + 0.1,
+              }
             }
           }));
         }
 
-        if (value.TimeMelted >= value.TimeToMelt && canMelt && inventoryRef.current.Coal > 0) {
-          setfurnacesStatus(prev => ({
+        if (value.TimeMelted >= value.TimeToMelt && canMelt && gamestatusref.current.inventory.Coal > 0) {
+          setGamestatus(prev => ({
             ...prev,
-            [key]: {
-              ...prev[key],
-              TimeMelted: 0,
-              Quantity: prev[key].Quantity - 1,
-              OutputQuantity: prev[key].OutputQuantity + 1,
-              Output: MeltingResults[value.Input],
+            furnacesStatus: {
+              ...prev.furnacesStatus,
+              [key]: {
+                ...prev.furnacesStatus[key],
+                TimeMelted: 0,
+                Quantity: prev.furnacesStatus[key].Quantity - 1,
+                OutputQuantity: prev.furnacesStatus[key].OutputQuantity + 1,
+                Output: MeltingResults[value.Input],
+              }
             }
           }));
           spentcoal += 1
         }
       });
 
-      // ===== Lógica do terceiro useEffect (base HP regen) =====
-      if (basehpref.current.basehp < basehpref.current.maxbasehp) {
-        setbasehp(prev => ({
+      // ===== Regeneração da base =====
+      if (gamestatusref.current.basestatus.basehp < gamestatusref.current.basestatus.maxbasehp) {
+        setGamestatus(prev => ({
           ...prev,
-          basehp: prev.basehp + (prev.maxbasehp / 5000) // ajustado de /1000 para /5000 (100ms)
+          basestatus: {
+            ...prev.basestatus,
+            basehp: prev.basestatus.basehp + (prev.basestatus.maxbasehp / 1200)
+          }
         }));
       }
-      if (basehpref.current.basehp > basehpref.current.maxbasehp) {
-        setbasehp(prev => ({
+      if (gamestatusref.current.basestatus.basehp > gamestatusref.current.basestatus.maxbasehp) {
+        setGamestatus(prev => ({
           ...prev,
-          basehp: prev.maxbasehp
+          basestatus: {
+            ...prev.basestatus,
+            basehp: prev.basestatus.maxbasehp
+          }
         }));
       }
 
-      // ===== Lógica do quinto useEffect (coal generators) =====
-      Object.entries(coalgeneratorref.current).forEach(([key, value]) => {
-        if (!coalgeneratorref.current[key].Burning) return;
+      // ===== Coal Generators =====
+      Object.entries(gamestatusref.current.coalGeneratorStatus).forEach(([key, value]) => {
+        if (!value.Burning) return;
 
-        const coalgenref = coalgeneratorref.current;
-
-        if (coalgenref[key].TimeBurned >= 3) {
-
+        if (value.TimeBurned >= 3) {
           spentcoal += 1
-          energygain += 30
-          setCoalGeneratorStatus(prev => ({
+          setGamestatus(prev => ({
             ...prev,
-            [key]: {
-              ...prev[key],
-              TimeBurned: 0,
+            coalGeneratorStatus: {
+              ...prev.coalGeneratorStatus,
+              [key]: { ...prev.coalGeneratorStatus[key], TimeBurned: 0 }
             }
           }));
 
-          if (inventoryRef.current.Coal <= 0) {
-            Object.entries(coalgeneratorref.current).forEach(([k, v]) => {
-              setCoalGeneratorStatus(prev => ({
-                ...prev,
-                [k]: { ...prev[k], Burning: false }
-              }));
+          if (gamestatusref.current.inventory.Coal <= 0) {
+            setGamestatus(prev => {
+              const updated = {}
+              Object.keys(prev.coalGeneratorStatus).forEach(k => {
+                updated[k] = { ...prev.coalGeneratorStatus[k], Burning: false }
+              })
+              return { ...prev, coalGeneratorStatus: updated }
             });
           }
         }
 
-        if (inventoryRef.current.Coal > 0) {
-          setCoalGeneratorStatus(prev => ({
+        if (gamestatusref.current.inventory.Coal > 0) {
+          setGamestatus(prev => ({
             ...prev,
-            [key]: {
-              ...prev[key],
-              TimeBurned: prev[key].TimeBurned + 0.1 // ajustado de 0.5 para 0.1 (100ms)
+            coalGeneratorStatus: {
+              ...prev.coalGeneratorStatus,
+              [key]: { ...prev.coalGeneratorStatus[key], TimeBurned: prev.coalGeneratorStatus[key].TimeBurned + 0.1 }
             }
           }));
+          energygain += 1
         }
       });
-      Object.entries(drillstatusref.current).forEach(([key, value]) => {
-        if (drillstatusref.current[key].Mining && availableenergy >= DrillEnergyNeeded[drillstatusref.current[key].Ore]) {
-          energyspent = energyspent + (DrillEnergyNeeded[drillstatusref.current[key].Ore] / 10)
-          setdrillstatus(prev => ({
+
+      // ===== Drills =====
+      Object.entries(gamestatusref.current.drillstatus).forEach(([key, value]) => {
+        if (value.Mining && availableenergy >= DrillEnergyNeeded[value.Ore]) {
+          energyspent += DrillEnergyNeeded[value.Ore] / 10
+          setGamestatus(prev => ({
             ...prev,
-            [key]: {
-              ...prev[key],
-              timemined: prev[key].timemined + 0.1
+            drillstatus: {
+              ...prev.drillstatus,
+              [key]: { ...prev.drillstatus[key], timemined: prev.drillstatus[key].timemined + 0.1 }
             }
           }))
-          if (drillstatusref.current[key].timemined >= drillstatusref.current[key].timetomine) {
-            setdrillstatus(prev => ({
+          if (value.timemined >= value.timetomine) {
+            setGamestatus(prev => ({
               ...prev,
-              [key]: {
-                ...prev[key],
-                timemined: 0,
+              drillstatus: {
+                ...prev.drillstatus,
+                [key]: { ...prev.drillstatus[key], timemined: 0 }
+              },
+              inventory: {
+                ...prev.inventory,
+                [value.Ore]: prev.inventory[value.Ore] + 1
               }
-            }))
-            setInventory(prev => ({
-              ...prev,
-              [drillstatusref.current[key].Ore]: prev[drillstatusref.current[key].Ore] + 1
             }))
           }
         }
       })
-      if (energystatusref.current.capacity < energystatusref.current.energy) {
-        setEnergystatus(prev => ({
+
+      // ===== Clamp energia =====
+      if (gamestatusref.current.energystatus.capacity < gamestatusref.current.energystatus.energy) {
+        setGamestatus(prev => ({
           ...prev,
-          energy: prev.capacity
+          energystatus: { ...prev.energystatus, energy: prev.energystatus.capacity }
         }));
       }
-      setInventory(prev => ({
-        ...prev,
-        Coal: prev.Coal - spentcoal
-      }))
-      if (inventoryRef.current.Coal < 0) {
-        setInventory(prev => ({
+
+      // ===== Consome carvão =====
+      if (spentcoal > 0) {
+        setGamestatus(prev => ({
           ...prev,
-          Coal: 0
+          inventory: {
+            ...prev.inventory,
+            Coal: Math.max(0, prev.inventory.Coal - spentcoal)
+          }
         }))
       }
-      let energychange = energygain - energyspent
-      setEnergystatus(prev => ({
+
+      // ===== Atualiza energia =====
+      const energychange = energygain - energyspent
+      setGamestatus(prev => ({
         ...prev,
-        energy: prev.energy + energychange,
-        capacity: (inventoryRef.current["Basic Battery"] * 100),
+        energystatus: {
+          energy: prev.energystatus.energy + energychange,
+          capacity: prev.inventory["Basic Battery"] * 100,
+          gain: energygain,
+          spent: energyspent,
+        }
       }))
     }, 100);
     return () => clearInterval(interval);
@@ -267,78 +268,146 @@ export default function Home() {
 
   useEffect(() => {
     const minterval = setInterval(() => {
-      const rsf = raidstatusref.current
+      const gs = gamestatusref.current
+      const rsf = gs.raidStatus
       const baseHp = 100;
       const hpPerWall = 10;
-      const MAX_BASE_HP_LIMIT = 3000; 
+      const MAX_BASE_HP_LIMIT = 3000;
       const maxbasehpcalc = Math.min(
-
         MAX_BASE_HP_LIMIT,
-        baseHp + (inventoryRef.current.Wall * hpPerWall)
+        baseHp + (gs.inventory.Wall * hpPerWall)
       );
 
-      setbasehp(prev => ({
+      setGamestatus(prev => ({
         ...prev,
-        maxbasehp: maxbasehpcalc
-      }));
-      setRaidStatus(prev => ({
-        ...prev,
-        timepassed: prev.timepassed + 1
+        basestatus: { ...prev.basestatus, maxbasehp: maxbasehpcalc },
+        raidStatus: { ...prev.raidStatus, timepassed: prev.raidStatus.timepassed + 1 }
       }))
-      if (rsf.timepassed >= rsf.timeuntilraid) {
-        setRaidStatus(prev => ({
-          ...prev,
-          monstersalive: prev.raidwave * 2,
-          totalmonsters: prev.raidwave * 2,
-          waving: true,
-          timepassed: 0,
-          timeuntilraid: 300,
-        }))
 
+      if (rsf.timepassed >= rsf.timeuntilraid) {
+        setGamestatus(prev => ({
+          ...prev,
+          raidStatus: {
+            ...prev.raidStatus,
+            monstersalive: prev.raidStatus.raidwave * 2,
+            totalmonsters: prev.raidStatus.raidwave * 2,
+            waving: true,
+            timepassed: 0,
+            timeuntilraid: 300,
+          }
+        }))
       } else if (rsf.waving) {
         let dps = 0;
 
-
-
         if (rsf.monstersalive <= 0) {
-          setRaidStatus(prev => ({
+          setGamestatus(prev => ({
             ...prev,
-            waving: false,
-            raidwave: prev.raidwave + 1,
-            monstersalive: prev.totalmonsters,
-
+            raidStatus: {
+              ...prev.raidStatus,
+              waving: false,
+              raidwave: prev.raidStatus.raidwave + 1,
+              monstersalive: prev.raidStatus.totalmonsters,
+            }
           }))
         }
-        if (basehpref.current.basehp <= 0) {
+        if (gs.basestatus.basehp <= 0) {
           setgameover(true)
+          setTimeout(() => {
+            setGamestatus({
+              inventory: {
+                Stone: 0,
+                Coal: 0,
+                Copper: 0,
+                Iron: 0,
+                Gold: 0,
+                Oil: 0,
+                Uranium: 0,
+                Furnace: 0,
+                "Iron Plate": 0,
+                "Copper Plate": 0,
+                "Gold Plate": 0,
+                Brick: 0,
+                Pistol: 0,
+                "Pistol Ammo": 0,
+                Wall: 0,
+                "Coal Generator": 0,
+                "Stone Drill": 0,
+                "Coal Drill": 0,
+                "Copper Drill": 0,
+                "Iron Drill": 0,
+                "Gold Drill": 0,
+                "Uranium Drill": 0,
+                "Basic Circuit": 0,
+                "Basic Battery": 0,
+              },
+              raidStatus: {
+                timeuntilraid: 600,
+                timepassed: 0,
+                monstersalive: 0,
+                totalmonsters: 0,
+                raidwave: 1,
+                waving: false,
+              },
+              energystatus: {
+                capacity: 0,
+                energy: 0,
+              },
+              basestatus: {
+                maxbasehp: 100,
+                basehp: 100,
+              },
+              drillstatus: {},
+              furnacesStatus: {},
+              coalGeneratorStatus: {},
+
+            })
+            setLastMine(null)
+            setStartTime(null)
+            setOpenCoalGenerator(null)
+            setOpenFurnace(null)
+            setMiningBar(null)
+            setgameover(false)
+          }, 5000);
         } else {
-          setbasehp(prev => ({
+          setGamestatus(prev => ({
             ...prev,
-            basehp: prev.basehp - (rsf.monstersalive * 5)
+            basestatus: {
+              ...prev.basestatus,
+              basehp: prev.basestatus.basehp - (rsf.monstersalive * 2.5)
+            }
           }))
         }
         Object.entries(Guns).forEach(([key, value]) => {
-          if (inventoryRef.current[key] >= 0 && inventoryRef.current[value.ammo] >= inventoryRef.current[key]) {
-            dps = (dps + inventoryRef.current[key] * value.damage)
+          if (gs.inventory[key] >= 0 && gs.inventory[value.ammo] >= gs.inventory[key]) {
+            dps += gs.inventory[key] * value.damage
 
-            setInventory(prev => ({
+            setGamestatus(prev => ({
               ...prev,
-              [value.ammo]: prev[value.ammo] - prev[key]
+              inventory: {
+                ...prev.inventory,
+                [value.ammo]: prev.inventory[value.ammo] - prev.inventory[key]
+              }
             }))
           }
         })
-        setRaidStatus(prev => ({
+        setGamestatus(prev => ({
           ...prev,
-          monstersalive: prev.monstersalive - (dps / 100)
-
+          raidStatus: {
+            ...prev.raidStatus,
+            monstersalive: prev.raidStatus.monstersalive - (dps / 100)
+          }
         }))
-
-
-
       }
     }, 1000);
     return () => clearInterval(minterval)
   }, [])
+
+  const inventory = gamestatus.inventory
+  const raidStatus = gamestatus.raidStatus
+  const energystatus = gamestatus.energystatus
+  const drillstatus = gamestatus.drillstatus
+  const furnacesStatus = gamestatus.furnacesStatus
+  const coalGeneratorStatus = gamestatus.coalGeneratorStatus
 
   return (
     <>
@@ -462,27 +531,27 @@ export default function Home() {
               onClick={() => {
                 if (!coalGeneratorStatus[openCoalGenerator].Burning) {
                   if (inventory.Coal > 0) {
-                    setInventory(prev => ({
+                    setGamestatus(prev => ({
                       ...prev,
-                      Coal: prev.Coal - 1
-                    }))
-                    setCoalGeneratorStatus(prev => ({
-                      ...prev,
-                      [openCoalGenerator]: {
-
-
-                        ...prev[openCoalGenerator],
-                        Burning: true
+                      inventory: { ...prev.inventory, Coal: prev.inventory.Coal - 1 },
+                      coalGeneratorStatus: {
+                        ...prev.coalGeneratorStatus,
+                        [openCoalGenerator]: {
+                          ...prev.coalGeneratorStatus[openCoalGenerator],
+                          Burning: true
+                        }
                       }
-
                     }))
                   }
                 } else {
-                  setCoalGeneratorStatus(prev => ({
+                  setGamestatus(prev => ({
                     ...prev,
-                    [openCoalGenerator]: {
-                      ...prev[openCoalGenerator],
-                      Burning: false,
+                    coalGeneratorStatus: {
+                      ...prev.coalGeneratorStatus,
+                      [openCoalGenerator]: {
+                        ...prev.coalGeneratorStatus[openCoalGenerator],
+                        Burning: false,
+                      }
                     }
                   }))
                 }
@@ -512,36 +581,40 @@ export default function Home() {
                       if (furnacesStatus[openFurnace].OutputQuantity > 0 && furnacesStatus[openFurnace].Output !== MeltingResults[value.Ore]) return;
                       if (furnacesStatus[openFurnace].Input !== value.Ore) {
                         const oldinputore = furnacesStatus[openFurnace].Input
-
-                        setInventory(prev => ({
+                        setGamestatus(prev => ({
                           ...prev,
-                          [oldinputore]: prev[oldinputore] + furnacesStatus[openFurnace].Quantity
+                          inventory: {
+                            ...prev.inventory,
+                            [oldinputore]: prev.inventory[oldinputore] + prev.furnacesStatus[openFurnace].Quantity,
+                            [value.Ore]: 0,
+                          },
+                          furnacesStatus: {
+                            ...prev.furnacesStatus,
+                            [openFurnace]: {
+                              ...prev.furnacesStatus[openFurnace],
+                              TimeToMelt: value.melttime,
+                              Input: value.Ore,
+                              Quantity: prev.furnacesStatus[openFurnace].Quantity + prev.inventory[value.Ore],
+                              Output: MeltingResults[value.Ore]
+                            }
+                          }
                         }))
-                        setfurnacesStatus(prev => ({
+                      } else {
+                        setGamestatus(prev => ({
                           ...prev,
-                          [openFurnace]: {
-                            ...prev[openFurnace],
-                            Quantity: 0,
+                          inventory: { ...prev.inventory, [value.Ore]: 0 },
+                          furnacesStatus: {
+                            ...prev.furnacesStatus,
+                            [openFurnace]: {
+                              ...prev.furnacesStatus[openFurnace],
+                              TimeToMelt: value.melttime,
+                              Input: value.Ore,
+                              Quantity: prev.furnacesStatus[openFurnace].Quantity + prev.inventory[value.Ore],
+                              Output: MeltingResults[value.Ore]
+                            }
                           }
                         }))
                       }
-                      setfurnacesStatus(prev => ({
-                        ...prev,
-                        [openFurnace]: {
-                          ...prev[openFurnace],
-
-                          TimeToMelt: value.melttime,
-                          TimeMelted: prev[openFurnace].TimeMelted,
-                          Input: value.Ore,
-                          Quantity: prev[openFurnace].Quantity + inventory[value.Ore],
-                          Output: MeltingResults[value.Ore]
-                        }
-                      }))
-                      setInventory(prev => ({
-                        ...prev,
-                        [value.Ore]: 0
-                      }))
-
                     }}>
                     <Image className="mt-2" src={Images[value.Ore]} height={30} width={30} alt={value.Ore}></Image>
                     <span>{inventory[value.Ore]}</span>
@@ -549,7 +622,64 @@ export default function Home() {
                 )
               })}</div>
             <div className="h-15 w-110 rounded mt-5 flex justify-between p-2 items-center">
-              <div className="rounded h-20 w-12 bg-zinc-800/60 flex flex-col justify-center items-center">
+              <div className="rounded h-20 w-12 bg-zinc-800/60 flex botaogenerico flex-col justify-center items-center"
+                onClick={() => {
+                  if (gamestatus.furnacesStatus[openFurnace].Input === null) return null;
+                  const oldquantity = gamestatus.furnacesStatus[openFurnace].Quantity
+                  const oldInput = gamestatus.furnacesStatus[openFurnace].Input
+                  const oldoutput = gamestatus.furnacesStatus[openFurnace].Output
+                  const oldoutputquantity = gamestatus.furnacesStatus[openFurnace].OutputQuantity
+                  if (gamestatus.furnacesStatus[openFurnace].Output === null) {
+                    setGamestatus(prev => ({
+                      ...prev,
+                      inventory: {
+                        ...prev.inventory,
+                        [oldInput]: prev.inventory[oldInput] + oldquantity,
+
+
+                      },
+                      furnacesStatus: {
+                        ...prev.furnacesStatus,
+                        [openFurnace]: {
+                          Melting: false,
+                          TimeToMelt: null,
+                          TimeMelted: 0,
+                          Input: null,
+                          Quantity: 0,
+                          Output: null,
+                          OutputQuantity: null,
+
+                        }
+                      }
+                    }))
+                  } else {
+
+                    setGamestatus(prev => ({
+                      ...prev,
+                      inventory: {
+                        ...prev.inventory,
+                        [oldInput]: prev.inventory[oldInput] + oldquantity,
+                        [oldoutput]: prev.inventory[oldoutput] + oldoutputquantity
+
+
+                      },
+                      furnacesStatus: {
+                        ...prev.furnacesStatus,
+                        [openFurnace]: {
+                          Melting: false,
+                          TimeToMelt: null,
+                          TimeMelted: 0,
+                          Input: null,
+                          Quantity: 0,
+                          Output: null,
+                          OutputQuantity: 0,
+
+                        }
+                      }
+                    }))
+                  }
+                }}>
+
                 {furnacesStatus[openFurnace].Input !== null &&
                   <>
                     <Image src={Images[furnacesStatus[openFurnace].Input] ?? null} width={44} height={44} alt="Input"></Image>
@@ -572,20 +702,19 @@ export default function Home() {
               </div>
               <div className="rounded h-20 w-12 bg-zinc-800/60 flex flex-col justify-center items-center botaogenerico" onClick={() => {
                 if (furnacesStatus[openFurnace].OutputQuantity > 0) {
-                  setInventory(prev => ({
+                  setGamestatus(prev => ({
                     ...prev,
-                    [furnacesStatus[openFurnace].Output]: prev[furnacesStatus[openFurnace].Output] + furnacesStatus[openFurnace].OutputQuantity
-                  }))
-                  setfurnacesStatus(prev => ({
-                    ...prev,
-                    [openFurnace]: {
-
-                      ...prev[openFurnace],
-                      OutputQuantity: 0,
+                    inventory: {
+                      ...prev.inventory,
+                      [prev.furnacesStatus[openFurnace].Output]: prev.inventory[prev.furnacesStatus[openFurnace].Output] + prev.furnacesStatus[openFurnace].OutputQuantity
+                    },
+                    furnacesStatus: {
+                      ...prev.furnacesStatus,
+                      [openFurnace]: {
+                        ...prev.furnacesStatus[openFurnace],
+                        OutputQuantity: 0,
+                      }
                     }
-
-
-
                   }))
                 }
               }}>
@@ -601,6 +730,7 @@ export default function Home() {
             <div className="rounded p-2 h-12 w-12 bg-zinc-800/60">
               <Image src={Images.Coal} alt="Coal"></Image></div>
             <span>{inventory.Coal}</span>
+
           </div>}
 
         </div>}
@@ -609,7 +739,6 @@ export default function Home() {
           {Object.entries(Craftables).map(([key, value]) => {
             const inventoryresource = inventory[value.resource]
             const inventoryresource2 = inventory[value.resource2]
-            const inventoryitem = inventory[value.item]
             const resourcephoto = Images[value.resource]
             const resourcephoto2 = Images[value.resource2]
             return (
@@ -635,23 +764,29 @@ export default function Home() {
                     if (value.resource2 === null) {
                       if (inventoryresource >= value.resourceNeeded) {
 
-                        setInventory(prev => ({
+                        setGamestatus(prev => ({
                           ...prev,
-                          [value.resource]: prev[value.resource] - value.resourceNeeded,
-                          [value.item]: prev[value.item] + 1,
+                          inventory: {
+                            ...prev.inventory,
+                            [value.resource]: prev.inventory[value.resource] - value.resourceNeeded,
+                            [value.item]: prev.inventory[value.item] + 1,
+                          }
                         }))
                         if (key === "Furnace") {
                           const furnaceId = "Furnace" + inventory.Furnace
-                          setfurnacesStatus(prev => ({
+                          setGamestatus(prev => ({
                             ...prev,
-                            [furnaceId]: {
-                              Melting: true,
-                              TimeToMelt: null,
-                              TimeMelted: 0,
-                              Input: null,
-                              Quantity: 0,
-                              Output: null,
-                              OutputQuantity: 0,
+                            furnacesStatus: {
+                              ...prev.furnacesStatus,
+                              [furnaceId]: {
+                                Melting: true,
+                                TimeToMelt: null,
+                                TimeMelted: 0,
+                                Input: null,
+                                Quantity: 0,
+                                Output: null,
+                                OutputQuantity: 0,
+                              }
                             }
                           }))
                         }
@@ -659,20 +794,25 @@ export default function Home() {
                     } else if (value.resource2 !== null) {
                       if (inventoryresource >= (value.resourceNeeded) && inventoryresource2 >= (value.resourceNeeded2 ?? 0)) {
                         const resource2 = value.resource2
-                        setInventory(prev => ({
+                        setGamestatus(prev => ({
                           ...prev,
-                          [value.resource]: prev[value.resource] - value.resourceNeeded,
-                          [resource2]: prev[value.resource2] - (value.resourceNeeded2 ?? 0),
-                          [value.item]: prev[value.item] + 1,
+                          inventory: {
+                            ...prev.inventory,
+                            [value.resource]: prev.inventory[value.resource] - value.resourceNeeded,
+                            [resource2]: prev.inventory[value.resource2] - (value.resourceNeeded2 ?? 0),
+                            [value.item]: prev.inventory[value.item] + 1,
+                          }
                         }))
                         if (key === "Coal Generator") {
                           const coalgeneratorid = "Coal Generator" + inventory["Coal Generator"]
-                          setCoalGeneratorStatus(prev => ({
+                          setGamestatus(prev => ({
                             ...prev,
-                            [coalgeneratorid]: {
-                              Burning: false,
-                              TimeBurned: 0,
-
+                            coalGeneratorStatus: {
+                              ...prev.coalGeneratorStatus,
+                              [coalgeneratorid]: {
+                                Burning: false,
+                                TimeBurned: 0,
+                              }
                             }
                           }))
 
@@ -680,17 +820,18 @@ export default function Home() {
                         if (key.includes("Drill")) {
 
                           const drillid = key + inventory[key]
-                          setdrillstatus(prev => ({
+                          setGamestatus(prev => ({
                             ...prev,
-                            [drillid]: {
-                              Mining: false,
-                              timetomine: OreCards[key.split(" ")[0]].timeToMine * 2,
-                              timemined: 0,
-                              Ore: OreCards[key.split(" ")[0]].Ore,
-
+                            drillstatus: {
+                              ...prev.drillstatus,
+                              [drillid]: {
+                                Mining: false,
+                                timetomine: OreCards[key.split(" ")[0]].timeToMine * 2,
+                                timemined: 0,
+                                Ore: OreCards[key.split(" ")[0]].Ore,
+                              }
                             }
                           }))
-                          console.log(drillstatus)
                         }
                       }
                     }
@@ -713,23 +854,16 @@ export default function Home() {
                 <Image width={150} height={150} src={Images[key]} alt="Drill Image"></Image>
                 <button className={`${drillstatus[drillid].Mining ? "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-green-500" : "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-red-500"}`}
                   onClick={() => {
-                    if (!drillstatus[drillid].Mining) {
-                      setdrillstatus(prev => ({
-                        ...prev,
+                    setGamestatus(prev => ({
+                      ...prev,
+                      drillstatus: {
+                        ...prev.drillstatus,
                         [drillid]: {
-                          ...prev[drillid],
-                          Mining: true,
+                          ...prev.drillstatus[drillid],
+                          Mining: !prev.drillstatus[drillid].Mining,
                         }
-                      }))
-                    } else {
-                      setdrillstatus(prev => ({
-                        ...prev,
-                        [drillid]: {
-                          ...prev[drillid],
-                          Mining: false,
-                        }
-                      }))
-                    }
+                      }
+                    }))
 
                   }}
 
@@ -750,8 +884,8 @@ export default function Home() {
               <span className="text-2xl font-bold">Wave level: {raidStatus.raidwave}</span>
               <span className=" text-2xl font-bold  ">Next wave: <TimeFormatter seconds={raidStatus.timeuntilraid - raidStatus.timepassed} /></span>
               <div className="flex justify-start items-center rounded relative bg-zinc-300/60">
-                <div className=" h-10 bg-green-500 rounded transition-[width] duration-100 ease-linear" style={{ width: (basestatus.basehp / basestatus.maxbasehp) * 100 + "%" }}></div>
-                <span className="absolute font-bold text-2xl left-1/2 -translate-x-1/2">{Math.round(basestatus.basehp) + "/" + Math.round(basestatus.maxbasehp) + "HP"}</span>
+                <div className=" h-10 bg-green-500 rounded transition-[width] duration-100 ease-linear" style={{ width: (gamestatus.basestatus.basehp / gamestatus.basestatus.maxbasehp) * 100 + "%" }}></div>
+                <span className="absolute font-bold text-2xl left-1/2 -translate-x-1/2">{Math.round(gamestatus.basestatus.basehp) + "/" + Math.round(gamestatus.basestatus.maxbasehp) + "HP"}</span>
               </div>
             </div>
           }
@@ -759,8 +893,8 @@ export default function Home() {
             <div className=" flex-col justify-center items-center">
               <span className=" text-2xl font-bold  ">MONSTERS ARE RAIDING!</span>
               <div className="flex justify-start items-center rounded relative bg-zinc-300/60">
-                <span className="absolute font-bold text-2xl left-1/2 -translate-x-1/2">{Math.round(basestatus.basehp) + "/" + Math.round(basestatus.maxbasehp) + "HP"}</span>
-                <div className=" h-10 bg-green-500 rounded transition-[width] duration-100 ease-linear" style={{ width: (basestatus.basehp / basestatus.maxbasehp) * 100 + "%" }}></div>
+                <span className="absolute font-bold text-2xl left-1/2 -translate-x-1/2">{Math.round(gamestatus.basestatus.basehp) + "/" + Math.round(gamestatus.basestatus.maxbasehp) + "HP"}</span>
+                <div className=" h-10 bg-green-500 rounded transition-[width] duration-100 ease-linear" style={{ width: (gamestatus.basestatus.basehp / gamestatus.basestatus.maxbasehp) * 100 + "%" }}></div>
               </div>
               <div className="flex  mt-2 justify-start items-center rounded relative bg-zinc-300/60">
                 <span className="absolute text-[20px] text-nowrap font-bold left-1/2 -translate-x-1/2">{"Monsters alive: " + Math.max(1, Math.round(raidStatus.monstersalive))}</span>
@@ -775,9 +909,10 @@ export default function Home() {
             <span className="text-6xl font-bold text-red-500">GAME OVER</span>
           </div>
         )}
+        <span className="text absolute right-27 font-bold bottom-10">{"+" + gamestatus.energystatus.gain + "/" + "-" + gamestatus.energystatus.spent}</span>
         {energystatus.capacity > 0 &&
 
-          <div className="absolute bg-zinc-300/80 bottom-2 flex justify-start overflow-hidden  items-center right-2 w-60 h-9 z-20 rounded-xl">
+          <div className="absolute   bg-zinc-300/80 bottom-2 flex justify-start overflow-hidden  items-center right-2 w-60 h-9 z-20 rounded-xl">
             <div className="bg-amber-300 h-9 rounded-xl transition-[width] duration-100 ease-linear " style={{ width: (energystatus.energy / energystatus.capacity) * 100 + "%" }}>
               <span className=" text-auto absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 text-zinc-900/50  font-bold">{Math.round(energystatus.energy) + "e/" + Math.round(energystatus.capacity) + "e"}</span></div></div>}
 

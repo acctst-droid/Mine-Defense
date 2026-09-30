@@ -124,7 +124,7 @@ export const PistolCraft = {
   resource2: null,
   resourceNeeded2: null,
   color: "#4b4a4d",
-  description: "15 damage"
+  description: "25 damage"
 
 }
 export const PistolAmmoCraft = {
@@ -274,7 +274,7 @@ export const MeltingResults = {
 }
 export const Guns = {
   Pistol: {
-    damage: 15,
+    damage: 25,
     ammo: "Pistol Ammo"
   },
 }
