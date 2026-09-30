@@ -909,7 +909,7 @@ export default function Home() {
             <span className="text-6xl font-bold text-red-500">GAME OVER</span>
           </div>
         )}
-        <span className="text absolute right-27 font-bold bottom-10">{"+" + gamestatus.energystatus.gain + "/" + "-" + gamestatus.energystatus.spent}</span>
+        {energystatus.capacity> 0  &&<span className="text absolute right-27 font-bold bottom-10">{"+" + gamestatus.energystatus.gain + "/" + "-" + gamestatus.energystatus.spent}</span>}
         {energystatus.capacity > 0 &&
 
           <div className="absolute   bg-zinc-300/80 bottom-2 flex justify-start overflow-hidden  items-center right-2 w-60 h-9 z-20 rounded-xl">
