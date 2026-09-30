@@ -292,7 +292,7 @@ export default function Home() {
           totalmonsters: prev.raidwave * 2,
           waving: true,
           timepassed: 0,
-          timeuntilraid: 180,
+          timeuntilraid: 300,
         }))
 
       } else if (rsf.waving) {
