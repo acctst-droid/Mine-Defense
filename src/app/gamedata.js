@@ -22,6 +22,63 @@ import UraniumDrill from "../../public/Uranium Drill.png"
 import GoldDrill from "../../public/Gold Drill.png"
 import BasicCircuit from "../../public/BasicCircuit.png"
 import BasicBattery from "../../public/BasicBattery.png"
+import ARAmmo from "../../public/AR Ammo.png"
+import Rifle from "../../public/Rifle.png"
+import RifleAmmo from "../../public/Rifle Ammo.png"
+import AssaultRifle from "../../public/Assault Rifle.png"
+export const initial_state = {
+  inventory: {
+    Stone: 0,
+    Coal: 0,
+    Copper: 0,
+    Iron: 0,
+    Gold: 0,
+    Oil: 0,
+    Uranium: 0,
+    Furnace: 0,
+    "Iron Plate": 0,
+    "Copper Plate": 0,
+    "Gold Plate": 0,
+    Brick: 0,
+    Pistol: 0,
+    "Pistol Ammo": 0,
+    Wall: 0,
+    "Coal Generator": 0,
+    "Stone Drill": 0,
+    "Coal Drill": 0,
+    "Copper Drill": 0,
+    "Iron Drill": 0,
+    "Gold Drill": 0,
+    "Uranium Drill": 0,
+    "Basic Circuit": 0,
+    "Basic Battery": 0,
+    Rifle: 0,
+    "Rifle Ammo": 0,
+    "Assault Rifle": 0,
+    "AR Ammo": 0,
+  },
+  raidStatus: {
+    timeuntilraid: 600,
+    timepassed: 0,
+    monstersalive: 0,
+    totalmonsters: 0,
+    raidwave: 1,
+    waving: false,
+  },
+  energystatus: {
+    capacity: 0,
+    energy: 0,
+    spent: 0,
+    gain: 0,
+  },
+  basestatus: {
+    maxbasehp: 100,
+    basehp: 100,
+  },
+  drillstatus: {},
+  furnacesStatus: {},
+  coalGeneratorStatus: {},
+}
 export const Images = {
   Furnace: Furnace,
   Stone: Stone,
@@ -37,6 +94,10 @@ export const Images = {
   "Copper Plate": CopperPlate,
   Pistol: Pistol,
   "Pistol Ammo": PistolAmmo,
+  Rifle: Rifle,
+  "Rifle Ammo": RifleAmmo,
+  "Assault Rifle": AssaultRifle,
+  "AR Ammo": ARAmmo,
   Wall: Wall,
   "Coal Generator": CoalGenerator,
   "Coal Drill": CoalDrill,
@@ -111,123 +172,169 @@ export const OreCards = {
 
 export const FurnaceCraft = {
   item: "Furnace",
-  resource: "Stone",
-  resourceNeeded: 10,
-  resource2: null,
-  resourceNeeded2: null,
+  cost: [
+    { resource: "Stone", amount: 10 }
+  ],
   color: "#5A5A5A",
 }
+
 export const PistolCraft = {
   item: "Pistol",
-  resource: "Iron Plate",
-  resourceNeeded: 5,
-  resource2: null,
-  resourceNeeded2: null,
+  cost: [
+    { resource: "Iron Plate", amount: 3 }
+  ],
   color: "#4b4a4d",
   description: "25 damage"
-
 }
+
 export const PistolAmmoCraft = {
   item: "Pistol Ammo",
-  resource: "Iron Plate",
-  resourceNeeded: 1,
-  resource2: null,
-  resourceNeeded2: null,
+  cost: [
+    { resource: "Iron Plate", amount: 1 }
+  ],
   color: "#c7aa54"
 }
+
 export const WallCraft = {
   item: "Wall",
-  resource: "Brick",
-  resourceNeeded: 10,
-  resource2: null,
-  resourceNeeded2: null,
+  cost: [
+    { resource: "Brick", amount: 10 }
+  ],
   color: "#0d3b08",
-  description: "+10 HP (up to 3000)"
+  description: "+10 HP (up to 10000)"
 }
+
 export const CoalGeneratorCraft = {
   item: "Coal Generator",
-  resource: "Iron Plate",
-  resourceNeeded: 5,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 2,
+  cost: [
+    { resource: "Iron Plate", amount: 5 },
+    { resource: "Basic Circuit", amount: 2 }
+  ],
   color: "#222324",
   description: "Energy generator"
 }
+
 export const CoalDrillCraft = {
   item: "Coal Drill",
-  resource: "Iron Plate",
-  resourceNeeded: 3,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 3,
+  cost: [
+    { resource: "Iron Plate", amount: 3 },
+    { resource: "Basic Circuit", amount: 3 }
+  ],
   color: "#1f2021",
   description: "Mine coal"
 }
+
 export const CopperDrillCraft = {
   item: "Copper Drill",
-  resource: "Iron Plate",
-  resourceNeeded: 6,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 2,
+  cost: [
+    { resource: "Iron Plate", amount: 6 },
+    { resource: "Basic Circuit", amount: 2 }
+  ],
   color: "#783813",
   description: "Mine copper"
 }
+
 export const IronDrillCraft = {
   item: "Iron Drill",
-  resource: "Iron Plate",
-  resourceNeeded: 15,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 5,
+  cost: [
+    { resource: "Iron Plate", amount: 15 },
+    { resource: "Basic Circuit", amount: 5 }
+  ],
   color: "#727372",
   description: "Mine iron"
 }
+
 export const GoldDrillCraft = {
   item: "Gold Drill",
-  resource: "Iron Plate",
-  resourceNeeded: 13,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 10,
+  cost: [
+    { resource: "Iron Plate", amount: 13 },
+    { resource: "Basic Circuit", amount: 10 }
+  ],
   color: "#edba21",
   description: "Mine gold"
 }
+
 export const UraniumDrillCraft = {
   item: "Uranium Drill",
-  resource: "Gold Plate",
-  resourceNeeded:  15,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 20,
+  cost: [
+    { resource: "Gold Plate", amount: 15 },
+    { resource: "Basic Circuit", amount: 20 }
+  ],
   color: "#0aa116",
   description: "Mine uranium"
 }
+
 export const StoneDrillCraft = {
   item: "Stone Drill",
-  resource: "Iron Plate",
-  resourceNeeded:  4,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 1,
+  cost: [
+    { resource: "Iron Plate", amount: 4 },
+    { resource: "Basic Circuit", amount: 1 }
+  ],
   color: "#515251",
   description: "Mine stone"
 }
+
 export const BasicCircuitCraft = {
   item: "Basic Circuit",
-  resource: "Copper Plate",
-  resourceNeeded: 2,
-  resource2: null,
-  resourceNeeded2: null,
+  cost: [
+    { resource: "Copper Plate", amount: 2 }
+  ],
   color: "#076e08",
 }
+
 export const BasicBatteryCraft = {
   item: "Basic Battery",
-  resource: "Iron Plate",
-  resourceNeeded: 6,
-  resource2: "Basic Circuit",
-  resourceNeeded2: 6,
+  cost: [
+    { resource: "Iron Plate", amount: 6 },
+    { resource: "Basic Circuit", amount: 6 }
+  ],
   color: "#783813",
   description: "Stores energy"
 }
+export const RifleCraft = {
+  item: "Rifle",
+  cost: [
+    { resource: "Iron Plate", amount: 10 },
+    { resource: "Basic Circuit", amount: 2 }
+  ],
+  color: "#a86932",
+  description: "50 damage"
+}
+export const RifleAmmoCraft = {
+  item: "Rifle Ammo",
+  cost: [
+    { resource: "Iron Plate", amount: 2 }
+  ],
+  color: "#bd7639",
+  description: ""
+}
+export const AssaultRifleCraft = {
+  item: "Assault Rifle",
+  cost: [
+    { resource: "Iron Plate", amount: 20 },
+    { resource: "Basic Circuit", amount: 5 }
+  ],
+  color: "#878480",
+  description: "100 damage"
+}
+export const ARAmmoCraft = {
+  item: "AR Ammo",
+  cost: [
+    { resource: "Iron Plate", amount: 4 },
+    { resource: "Basic Circuit", amount: 1 }
+  ],
+  color: "#5c5b5b",
+  description: ""
+}
+
 export const Craftables = {
   Furnace: FurnaceCraft,
   Pistol: PistolCraft,
   "Pistol Ammo": PistolAmmoCraft,
+  "Rifle": RifleCraft,
+  "Rifle Ammo": RifleAmmoCraft,
+  "Assault Rifle": AssaultRifleCraft,
+  "AR Ammo": ARAmmoCraft,
   Wall: WallCraft,
   "Basic Circuit": BasicCircuitCraft,
   "Basic Battery": BasicBatteryCraft,
@@ -240,21 +347,9 @@ export const Craftables = {
   "Uranium Drill": UraniumDrillCraft,
 }
 export const MaxStack = {
-  Stone: null,
-  Coal: null,
-  Copper: null,
-  Iron: null,
-  Gold: null,
-  Oil: null,
-  Uranium: null,
-  "Iron Plate": null,
-  "Gold Plate": null,
-  "Copper Plate": null,
-  "Brick": null,
+
   Furnace: 1,
   Pistol: 1,
-  "Pistol Ammo": null,
-  Wall: null,
   "Coal Generator": 1,
   "Stone Drill": "Drill",
   "Coal Drill": "Drill",
@@ -262,8 +357,6 @@ export const MaxStack = {
   "Iron Drill": "Drill",
   "Gold Drill": "Drill",
   "Uranium Drill": "Drill",
-  "Basic Circuit": null,
-  "Basic Battery": null,
 }
 export const MeltingResults = {
   Iron: "Iron Plate",
@@ -277,6 +370,14 @@ export const Guns = {
     damage: 25,
     ammo: "Pistol Ammo"
   },
+  Rifle: {
+    damage: 50,
+    ammo: "Rifle Ammo",
+  },
+  "Assault Rifle": {
+    damage: 100,
+    ammo:"AR Ammo"
+  }
 }
 export const DrillEnergyNeeded = {
   Coal: 3,

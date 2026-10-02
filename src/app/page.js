@@ -4,59 +4,12 @@ import { Pickaxe, Clock, PaperBag, Hammer, Key, Trash, Drill } from "lucide-reac
 import { useEffect, useRef, useState } from "react";
 import {
   Images, Craftables, MaxStack, OreCards,
-  MeltingResults, Guns, DrillEnergyNeeded
+  MeltingResults, Guns, DrillEnergyNeeded, initial_state
 } from "./gamedata.js"
 
 export default function Home() {
-  const [gamestatus, setGamestatus] = useState({
-    inventory: {
-      Stone: 0,
-      Coal: 0,
-      Copper: 0,
-      Iron: 0,
-      Gold: 0,
-      Oil: 0,
-      Uranium: 0,
-      Furnace: 0,
-      "Iron Plate": 0,
-      "Copper Plate": 0,
-      "Gold Plate": 0,
-      Brick: 0,
-      Pistol: 0,
-      "Pistol Ammo": 0,
-      Wall: 0,
-      "Coal Generator": 0,
-      "Stone Drill": 0,
-      "Coal Drill": 0,
-      "Copper Drill": 0,
-      "Iron Drill": 0,
-      "Gold Drill": 0,
-      "Uranium Drill": 0,
-      "Basic Circuit": 0,
-      "Basic Battery": 0,
-    },
-    raidStatus: {
-      timeuntilraid: 600,
-      timepassed: 0,
-      monstersalive: 0,
-      totalmonsters: 0,
-      raidwave: 1,
-      waving: false,
-    },
-    energystatus: {
-      capacity: 0,
-      energy: 0,
-      spent: 0,
-      gain: 0,
-    },
-    basestatus: {
-      maxbasehp: 100,
-      basehp: 100,
-    },
-    drillstatus: {},
-    furnacesStatus: {},
-    coalGeneratorStatus: {},
-  })
+  const [gamestatus, setGamestatus] = useState(
+    initial_state)
 
   const gamestatusref = useRef(gamestatus)
   useEffect(() => { gamestatusref.current = gamestatus }, [gamestatus])
@@ -64,6 +17,7 @@ export default function Home() {
     const gamedata = JSON.parse(localStorage.getItem("gamestatus"))
     if (gamedata !== null) {
       setGamestatus(gamedata)
+
     }
   }, [])
   useEffect(() => {
@@ -272,7 +226,7 @@ export default function Home() {
       const rsf = gs.raidStatus
       const baseHp = 100;
       const hpPerWall = 10;
-      const MAX_BASE_HP_LIMIT = 3000;
+      const MAX_BASE_HP_LIMIT = 10000;
       const maxbasehpcalc = Math.min(
         MAX_BASE_HP_LIMIT,
         baseHp + (gs.inventory.Wall * hpPerWall)
@@ -284,24 +238,30 @@ export default function Home() {
         raidStatus: { ...prev.raidStatus, timepassed: prev.raidStatus.timepassed + 1 }
       }))
 
+      // ===== Começa uma raid nova =====
       if (rsf.timepassed >= rsf.timeuntilraid) {
+        const w = gamestatusref.current.raidStatus.raidwave;
+        const monsterCount = Math.ceil(1.2 * Math.pow(1.7, w));
+
         setGamestatus(prev => ({
           ...prev,
           raidStatus: {
             ...prev.raidStatus,
-            monstersalive: prev.raidStatus.raidwave * 2,
-            totalmonsters: prev.raidStatus.raidwave * 2,
+            monstersalive: monsterCount,
+            totalmonsters: monsterCount,
             waving: true,
             timepassed: 0,
             timeuntilraid: 300,
           }
         }))
-      } else if (rsf.waving) {
+      }
+      else if (rsf.waving) {
         let dps = 0;
 
         if (rsf.monstersalive <= 0) {
           setGamestatus(prev => ({
             ...prev,
+
             raidStatus: {
               ...prev.raidStatus,
               waving: false,
@@ -313,54 +273,7 @@ export default function Home() {
         if (gs.basestatus.basehp <= 0) {
           setgameover(true)
           setTimeout(() => {
-            setGamestatus({
-              inventory: {
-                Stone: 0,
-                Coal: 0,
-                Copper: 0,
-                Iron: 0,
-                Gold: 0,
-                Oil: 0,
-                Uranium: 0,
-                Furnace: 0,
-                "Iron Plate": 0,
-                "Copper Plate": 0,
-                "Gold Plate": 0,
-                Brick: 0,
-                Pistol: 0,
-                "Pistol Ammo": 0,
-                Wall: 0,
-                "Coal Generator": 0,
-                "Stone Drill": 0,
-                "Coal Drill": 0,
-                "Copper Drill": 0,
-                "Iron Drill": 0,
-                "Gold Drill": 0,
-                "Uranium Drill": 0,
-                "Basic Circuit": 0,
-                "Basic Battery": 0,
-              },
-              raidStatus: {
-                timeuntilraid: 600,
-                timepassed: 0,
-                monstersalive: 0,
-                totalmonsters: 0,
-                raidwave: 1,
-                waving: false,
-              },
-              energystatus: {
-                capacity: 0,
-                energy: 0,
-              },
-              basestatus: {
-                maxbasehp: 100,
-                basehp: 100,
-              },
-              drillstatus: {},
-              furnacesStatus: {},
-              coalGeneratorStatus: {},
-
-            })
+            setGamestatus(initial_state)
             setLastMine(null)
             setStartTime(null)
             setOpenCoalGenerator(null)
@@ -368,40 +281,40 @@ export default function Home() {
             setMiningBar(null)
             setgameover(false)
           }, 5000);
-        } else {
+        }
+        // Base viva: armas atiram
+        else {
+          Object.entries(Guns).forEach(([key, value]) => {
+            if (gs.inventory[key] > 0 && gs.inventory[value.ammo] >= gs.inventory[key]) {
+              dps += gs.inventory[key] * value.damage
+
+              setGamestatus(prev => ({
+                ...prev,
+                inventory: {
+                  ...prev.inventory,
+                  [value.ammo]: prev.inventory[value.ammo] - prev.inventory[key]
+                },
+
+              }))
+            }
+          })
+
           setGamestatus(prev => ({
             ...prev,
+            raidStatus: {
+              ...prev.raidStatus,
+              monstersalive: prev.raidStatus.monstersalive - (dps / 100)
+            },
             basestatus: {
               ...prev.basestatus,
-              basehp: prev.basestatus.basehp - (rsf.monstersalive * 2.5)
-            }
+              basehp: prev.basestatus.basehp - ((rsf.monstersalive * prev.raidStatus.raidwave) * 2.5)
+            },
           }))
         }
-        Object.entries(Guns).forEach(([key, value]) => {
-          if (gs.inventory[key] >= 0 && gs.inventory[value.ammo] >= gs.inventory[key]) {
-            dps += gs.inventory[key] * value.damage
-
-            setGamestatus(prev => ({
-              ...prev,
-              inventory: {
-                ...prev.inventory,
-                [value.ammo]: prev.inventory[value.ammo] - prev.inventory[key]
-              }
-            }))
-          }
-        })
-        setGamestatus(prev => ({
-          ...prev,
-          raidStatus: {
-            ...prev.raidStatus,
-            monstersalive: prev.raidStatus.monstersalive - (dps / 100)
-          }
-        }))
       }
     }, 1000);
     return () => clearInterval(minterval)
   }, [])
-
   const inventory = gamestatus.inventory
   const raidStatus = gamestatus.raidStatus
   const energystatus = gamestatus.energystatus
@@ -465,37 +378,76 @@ export default function Home() {
           {Object.entries(inventory).map(([key, value]) => {
             if (value === 0) return null;
             if (!Images[key]) return null;
-            if ((MaxStack[key] === null)) {
+            if ((MaxStack[key] == null)) {
               return (
                 <div key={key} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60 rounded-2xl gap-2 p-3 ">
                   <span className="text-auto font-bold">{key}</span>
                   <Image src={Images[key]} alt={key} width={50} height={50}></Image>
                   <span className="text-bold text-2xl">{value}</span>
+
                 </div>
               )
             } else if (key === "Furnace") {
-              return Array.from({ length: value }, (_, i) => (
-                <div key={key + i} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3 ">
-                  <span className="text-auto font-bold">{key}</span>
-                  <Image src={Images[key]} alt={key} width={50} height={50}></Image>
-                  <button className="px-6 bg-green-500 rounded-2xl font-bold botaogenerico" onClick={() => {
-                    setOpenFurnace(key + i)
-                  }}>Use</button>
+              {
+                return Object.entries(gamestatus.furnacesStatus).map(([furnaceid, furnace]) => (
+                  <div key={furnaceid} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3 ">
+                    <span className="text-auto font-bold">Furnace</span>
+                    <Image src={Images.Furnace} alt="Furnace" width={50} height={50}></Image>
+                    {furnace.Input !== null && <Image src={Images[furnace.Input]}alt="FurnaceInput" width={20} height={20} className="mt-15 absolute"></Image>}
 
-                </div>
-              ))
+                    <button className="px-6 bg-green-500 rounded-2xl font-bold botaogenerico" onClick={() => {
+                      setOpenFurnace(furnaceid)
+                    }}>Use</button>
+                    <Trash className="bg-red-500 rounded botaogenerico"
+                      onClick={() => {
+                        setOpenFurnace(null)
+
+                        setGamestatus(prev => {
+                          const copia = { ...prev.furnacesStatus }
+                          delete copia[furnaceid]
+                          return {
+                            ...prev,
+                            furnacesStatus: copia,
+                            inventory: {
+                              ...prev.inventory,
+                              Furnace: prev.inventory.Furnace - 1
+                            },
+                          }
+                        })
+                      }
+                      }
+                    ></Trash>
+
+                  </div>
+                ))
+              }
+
             } else if (key === "Coal Generator") {
-              return Array.from({ length: value }, (_, i) => (
-                <div key={key + i} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3">
-                  <span className="text-auto font-bold">{key}</span>
-                  <Image src={Images[key]} alt={key} width={50} height={50}></Image>
+              return Object.entries(gamestatus.coalGeneratorStatus).map(([generatorid, generator]) => (
+                <div key={generatorid} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3">
+                  <span className="text-auto font-bold">Coal Generator</span>
+                  <Image src={Images["Coal Generator"]} alt="Coal Generator" width={50} height={50}></Image>
                   <button className="px-6 bg-green-500 rounded-2xl font-bold botaogenerico" onClick={() => {
-                    setOpenCoalGenerator(key + i)
+                    setOpenCoalGenerator(generatorid)
                   }}>Use</button>
+                  <Trash className="bg-red-500 rounded botaogenerico"
+                    onClick={() => {
+                      setGamestatus(prev => {
+                        const copia = { ...prev.coalGeneratorStatus }
+                        delete copia[generatorid]
+                        return {
+                          ...prev,
+                          coalGeneratorStatus: copia,
+                          inventory: {
+                            ...prev.inventory,
+                            "Coal Generator": prev.inventory["Coal Generator"] - 1
+                          }
+                        }
+                      })
+                    }}
+                  ></Trash>
 
                 </div>
-
-
               ))
             }
             else {
@@ -573,7 +525,7 @@ export default function Home() {
             </div>
             <div className="h-20 w-100 rounded-2xl overflow-x-auto overflow-y-hidden flex bg-zinc-600/80 p-3 gap-3 justify-start items-center">
               {Object.entries(OreCards).map(([key, value]) => {
-                if (value.meltable === false | inventory[value.Ore] <= 0) return null;
+                if (value.meltable === false || inventory[value.Ore] <= 0) return null;
                 return (
 
                   <div key={key} className="h-15 w-15 rounded p-3 botaogenerico flex justify-center items-center flex-col bg-zinc-300/60"
@@ -581,39 +533,79 @@ export default function Home() {
                       if (furnacesStatus[openFurnace].OutputQuantity > 0 && furnacesStatus[openFurnace].Output !== MeltingResults[value.Ore]) return;
                       if (furnacesStatus[openFurnace].Input !== value.Ore) {
                         const oldinputore = furnacesStatus[openFurnace].Input
-                        setGamestatus(prev => ({
-                          ...prev,
-                          inventory: {
-                            ...prev.inventory,
-                            [oldinputore]: prev.inventory[oldinputore] + prev.furnacesStatus[openFurnace].Quantity,
-                            [value.Ore]: 0,
-                          },
-                          furnacesStatus: {
-                            ...prev.furnacesStatus,
-                            [openFurnace]: {
-                              ...prev.furnacesStatus[openFurnace],
-                              TimeToMelt: value.melttime,
-                              Input: value.Ore,
-                              Quantity: prev.furnacesStatus[openFurnace].Quantity + prev.inventory[value.Ore],
-                              Output: MeltingResults[value.Ore]
+                        if (gamestatus.inventory[value.Ore] >= 50) {
+                          setGamestatus(prev => ({
+                            ...prev,
+                            inventory: {
+                              ...prev.inventory,
+                              [oldinputore]: prev.inventory[oldinputore] + prev.furnacesStatus[openFurnace].Quantity,
+                              [value.Ore]: prev.inventory[value.Ore] - 50,
+                            },
+                            furnacesStatus: {
+                              ...prev.furnacesStatus,
+                              [openFurnace]: {
+                                ...prev.furnacesStatus[openFurnace],
+                                TimeToMelt: value.melttime,
+                                Input: value.Ore,
+                                Quantity: prev.furnacesStatus[openFurnace].Quantity + 50,
+                                Output: MeltingResults[value.Ore]
+                              }
                             }
-                          }
-                        }))
+                          }))
+                        } else {
+                          setGamestatus(prev => ({
+                            ...prev,
+                            inventory: {
+                              ...prev.inventory,
+                              [oldinputore]: prev.inventory[oldinputore] + prev.furnacesStatus[openFurnace].Quantity,
+                              [value.Ore]: 0,
+                            },
+                            furnacesStatus: {
+                              ...prev.furnacesStatus,
+                              [openFurnace]: {
+                                ...prev.furnacesStatus[openFurnace],
+                                TimeToMelt: value.melttime,
+                                Input: value.Ore,
+                                Quantity: prev.furnacesStatus[openFurnace].Quantity + prev.inventory[value.Ore],
+                                Output: MeltingResults[value.Ore]
+                              }
+                            }
+                          }))
+                        }
+
                       } else {
-                        setGamestatus(prev => ({
-                          ...prev,
-                          inventory: { ...prev.inventory, [value.Ore]: 0 },
-                          furnacesStatus: {
-                            ...prev.furnacesStatus,
-                            [openFurnace]: {
-                              ...prev.furnacesStatus[openFurnace],
-                              TimeToMelt: value.melttime,
-                              Input: value.Ore,
-                              Quantity: prev.furnacesStatus[openFurnace].Quantity + prev.inventory[value.Ore],
-                              Output: MeltingResults[value.Ore]
+                        if (gamestatus.inventory[value.Ore] >= 50) {
+                          setGamestatus(prev => ({
+                            ...prev,
+                            inventory: { ...prev.inventory, [value.Ore]: prev.inventory[value.Ore] - 50 },
+                            furnacesStatus: {
+                              ...prev.furnacesStatus,
+                              [openFurnace]: {
+                                ...prev.furnacesStatus[openFurnace],
+                                TimeToMelt: value.melttime,
+                                Input: value.Ore,
+                                Quantity: prev.furnacesStatus[openFurnace].Quantity + 50,
+                                Output: MeltingResults[value.Ore]
+                              }
                             }
-                          }
-                        }))
+                          }))
+                        } else {
+                          setGamestatus(prev => ({
+                            ...prev,
+                            inventory: { ...prev.inventory, [value.Ore]: 0 },
+                            furnacesStatus: {
+                              ...prev.furnacesStatus,
+                              [openFurnace]: {
+                                ...prev.furnacesStatus[openFurnace],
+                                TimeToMelt: value.melttime,
+                                Input: value.Ore,
+                                Quantity: prev.furnacesStatus[openFurnace].Quantity + prev.inventory[value.Ore],
+                                Output: MeltingResults[value.Ore]
+                              }
+                            }
+                          }))
+                        }
+
                       }
                     }}>
                     <Image className="mt-2" src={Images[value.Ore]} height={30} width={30} alt={value.Ore}></Image>
@@ -737,103 +729,89 @@ export default function Home() {
 
         {activeGui === "Craft" && <div className="z-20 w-300 h-150 p-6 bg-slate-900/80 overflow-y-auto overflow-x-hidden gap-6 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-min grid-cols-5 justify-start items-start shadow-inner">
           {Object.entries(Craftables).map(([key, value]) => {
-            const inventoryresource = inventory[value.resource]
-            const inventoryresource2 = inventory[value.resource2]
-            const resourcephoto = Images[value.resource]
-            const resourcephoto2 = Images[value.resource2]
+            const inv = gamestatus.inventory
+
             return (
               <div className="w-50 h-80 justify-start items-center flex flex-col  p-3 rounded-2xl m-5 gap-1" style={{ backgroundColor: value.color }} key={key}>
                 <Image src={Images[value.item]} alt={value.item} height={70} width={70}></Image>
                 <span className="font-bold text-2xl">{value.item}</span>
-                <div className="flex flex-row justify-center items-center gap-1">
-                  <Image src={resourcephoto} alt={value.resource} height={30} width={30}></Image>
-                  <span className={` ${inventoryresource >= value.resourceNeeded ? "text-white" : "text-red-500"}`}
-                  >{value.resourceNeeded + " " + value.resource + " (" + inventoryresource + ")"}</span>
-                </div>
-                {value.resource2 && (<div className="flex flex-row justify-center items-center gap-1">
-                  <Image src={resourcephoto2} alt={value.resource2} height={30} width={30}></Image>
-                  <span className={` ${inventoryresource2 >= (value.resourceNeeded2 ?? 0) ? "text-white" : "text-red-500"}`}
-                  >{value.resourceNeeded2 + " " + value.resource2 + " (" + inventoryresource2 + ")"}</span>
-                </div>
+                {value.cost.map((c, i) => {
+                  return <div key={i} className="flex flex-row justify-center items-center gap-1">
+                    <Image src={Images[c.resource]} alt={c.resource} height={30} width={30}></Image>
+                    <span className={` ${inv[c.resource] >= c.amount ? "text-white" : "text-red-500"}`}
+                    >{c.amount + " " + c.resource + " (" + inv[c.resource] + ")"}</span>
+                  </div>
+                })}
 
-                )}
 
                 <button className="mt-2 bg-green-500 rounded-2xl botaogenerico font-bold text-2xl px-6"
                   onClick={() => {
+                    const canCraft = value.cost.every((cx) => inv[cx.resource] >= cx.amount)
 
-                    if (value.resource2 === null) {
-                      if (inventoryresource >= value.resourceNeeded) {
-
+                    if (canCraft) {
+                      value.cost.map((c, i) => (
                         setGamestatus(prev => ({
                           ...prev,
                           inventory: {
                             ...prev.inventory,
-                            [value.resource]: prev.inventory[value.resource] - value.resourceNeeded,
+                            [c.resource]: prev.inventory[c.resource] - c.amount,
                             [value.item]: prev.inventory[value.item] + 1,
                           }
                         }))
-                        if (key === "Furnace") {
-                          const furnaceId = "Furnace" + inventory.Furnace
-                          setGamestatus(prev => ({
-                            ...prev,
-                            furnacesStatus: {
-                              ...prev.furnacesStatus,
-                              [furnaceId]: {
-                                Melting: true,
-                                TimeToMelt: null,
-                                TimeMelted: 0,
-                                Input: null,
-                                Quantity: 0,
-                                Output: null,
-                                OutputQuantity: 0,
-                              }
-                            }
-                          }))
-                        }
-                      }
-                    } else if (value.resource2 !== null) {
-                      if (inventoryresource >= (value.resourceNeeded) && inventoryresource2 >= (value.resourceNeeded2 ?? 0)) {
-                        const resource2 = value.resource2
+                      ))
+
+
+                      if (key.includes("Drill")) {
+                        const mine = key.split(" ")[0]
+                        const drillid = mine + " " + Date.now() + Math.random()
                         setGamestatus(prev => ({
                           ...prev,
-                          inventory: {
-                            ...prev.inventory,
-                            [value.resource]: prev.inventory[value.resource] - value.resourceNeeded,
-                            [resource2]: prev.inventory[value.resource2] - (value.resourceNeeded2 ?? 0),
-                            [value.item]: prev.inventory[value.item] + 1,
+                          drillstatus: {
+                            ...prev.drillstatus,
+                            [drillid]: {
+                              Mining: false,
+                              timetomine: OreCards[key.split(" ")[0]].timeToMine,
+                              timemined: 0,
+                              Ore: OreCards[key.split(" ")[0]].Ore,
+                            }
                           }
                         }))
-                        if (key === "Coal Generator") {
-                          const coalgeneratorid = "Coal Generator" + inventory["Coal Generator"]
-                          setGamestatus(prev => ({
-                            ...prev,
-                            coalGeneratorStatus: {
-                              ...prev.coalGeneratorStatus,
-                              [coalgeneratorid]: {
-                                Burning: false,
-                                TimeBurned: 0,
-                              }
-                            }
-                          }))
-
-                        }
-                        if (key.includes("Drill")) {
-
-                          const drillid = key + inventory[key]
-                          setGamestatus(prev => ({
-                            ...prev,
-                            drillstatus: {
-                              ...prev.drillstatus,
-                              [drillid]: {
-                                Mining: false,
-                                timetomine: OreCards[key.split(" ")[0]].timeToMine * 2,
-                                timemined: 0,
-                                Ore: OreCards[key.split(" ")[0]].Ore,
-                              }
-                            }
-                          }))
-                        }
                       }
+                      if (key === "Furnace") {
+                        const furnaceId = "Furnace" + Date.now() + Math.random()
+                        setGamestatus(prev => ({
+                          ...prev,
+                          furnacesStatus: {
+                            ...prev.furnacesStatus,
+                            [furnaceId]: {
+                              Melting: true,
+                              TimeToMelt: null,
+                              TimeMelted: 0,
+                              Input: null,
+                              Quantity: 0,
+                              Output: null,
+                              OutputQuantity: 0,
+                            }
+                          }
+                        }))
+                      }
+                      if (key === "Coal Generator") {
+                        const coalgeneratorid = "Coal Generator" + Date.now() + Math.random()
+                        setGamestatus(prev => ({
+                          ...prev,
+                          coalGeneratorStatus: {
+                            ...prev.coalGeneratorStatus,
+                            [coalgeneratorid]: {
+                              Burning: false,
+                              TimeBurned: 0,
+                            }
+                          }
+                        }))
+
+                      }
+
+
+
                     }
                   }}>Craft</button>
                 <span className="font-bold mt-2">{Craftables[key].description ?? ""}</span>
@@ -842,44 +820,59 @@ export default function Home() {
           })}
         </div>}
 
-        {activeGui === "Drill" && <div className="z-20 w-300 h-150 p-6 bg-slate-900/80 overflow-y-auto overflow-x-hidden gap-6 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-min grid-cols-5 justify-start  items-start shadow-inner">
-          {Object.entries(inventory).map(([key, value]) => {
-            if (!key.includes("Drill")) return null;
-            if (value === 0) return null;
-            const orename = key.split(" ")[0]
-            return Array.from({ length: value }, (_, i) => {
-              const drillid = key + i
-              return <div key={key + i} className="w-50 h-90 rounded-2xl flex justify-start p-5 gap-3 flex-col items-center" style={{ backgroundColor: Craftables[key].color }}>
-                <span className="text-2xl font-bold">{key}</span>
-                <Image width={150} height={150} src={Images[key]} alt="Drill Image"></Image>
-                <button className={`${drillstatus[drillid].Mining ? "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-green-500" : "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-red-500"}`}
-                  onClick={() => {
-                    setGamestatus(prev => ({
-                      ...prev,
-                      drillstatus: {
-                        ...prev.drillstatus,
-                        [drillid]: {
-                          ...prev.drillstatus[drillid],
-                          Mining: !prev.drillstatus[drillid].Mining,
-                        }
-                      }
-                    }))
-
-                  }}
-
-                >Mine</button>
-                <span>{"Spent " + DrillEnergyNeeded[orename] + "e per second"}</span>
-                <div className="w-40 overflow-hidden h-7 relative flex justify-start  items-center bg-zinc-300/60 rounded-2xl">
-                  <span className="absolute left-1/2 font-bold -translate-x-1/2">{Math.round(drillstatus[drillid].timetomine - drillstatus[drillid].timemined) + "s"}</span>
-                  <div className=" h-7  bg-green-500 transition-[width] ease-linear duration-100 rounded-xl" style={{ width: (drillstatus[drillid].timemined / drillstatus[drillid].timetomine) * 100 + "%" }}></div>
+        {activeGui === "Drill" && (
+          <div className="z-20 w-300 h-150 p-6 bg-slate-900/80 overflow-y-auto overflow-x-hidden gap-6 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-min grid-cols-5 justify-start items-start shadow-inner">
+            {Object.entries(gamestatus.drillstatus).map(([key, value]) => {
+              const orename = key.split(" ")[0];
+              const drillname = orename + " Drill"
+              const drillid = key; // ou o valor correto para o id
+              const drillstatus = value
+              return (
+                <div
+                  key={drillid}
+                  className="w-50 h-90 rounded-2xl flex justify-start p-5 gap-3 flex-col items-center"
+                  style={{ backgroundColor: Craftables[drillname].color }}
+                >
+                  <span className="text-2xl font-bold">{drillname}</span>
+                  <Image width={150} height={150} src={Images[drillname]} alt="Drill Image" />
+                  <button
+                    className={`${drillstatus.Mining
+                      ? "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-green-500"
+                      : "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-red-500"
+                      }`}
+                    onClick={() => {
+                      setGamestatus(prev => ({
+                        ...prev,
+                        drillstatus: {
+                          ...prev.drillstatus,
+                          [drillid]: {
+                            ...prev.drillstatus[drillid],
+                            Mining: !prev.drillstatus[drillid].Mining,
+                          },
+                        },
+                      }));
+                    }}
+                  >
+                    Mine
+                  </button>
+                  <span>{"Spent " + DrillEnergyNeeded[orename] + "e per second"}</span>
+                  <div className="w-40 overflow-hidden h-7 relative flex justify-start items-center bg-zinc-300/60 rounded-2xl">
+                    <span className="absolute left-1/2 font-bold -translate-x-1/2">
+                      {Math.round(drillstatus.timetomine - drillstatus.timemined) + "s"}
+                    </span>
+                    <div
+                      className="h-7 bg-green-500 transition-[width] ease-linear duration-100 rounded-xl"
+                      style={{ width: (drillstatus.timemined / drillstatus.timetomine) * 100 + "%" }}
+                    ></div>
+                  </div>
                 </div>
-              </div>
-            })
-          })}
-        </div>}
+              );
+            })}
+          </div>
+        )}
         <div className="absolute top-1 left-1/2 -translate-x-1/2">
 
-          {!raidStatus.waving &&
+          {!gamestatus.raidStatus.waving &&
             <div className="flex-col flex text-center">
               <span className="text-2xl font-bold">Wave level: {raidStatus.raidwave}</span>
               <span className=" text-2xl font-bold  ">Next wave: <TimeFormatter seconds={raidStatus.timeuntilraid - raidStatus.timepassed} /></span>
@@ -889,7 +882,7 @@ export default function Home() {
               </div>
             </div>
           }
-          {raidStatus.waving &&
+          {gamestatus.raidStatus.waving &&
             <div className=" flex-col justify-center items-center">
               <span className=" text-2xl font-bold  ">MONSTERS ARE RAIDING!</span>
               <div className="flex justify-start items-center rounded relative bg-zinc-300/60">
@@ -909,13 +902,24 @@ export default function Home() {
             <span className="text-6xl font-bold text-red-500">GAME OVER</span>
           </div>
         )}
-        {energystatus.capacity> 0  &&<span className="text absolute right-27 font-bold bottom-10">{"+" + gamestatus.energystatus.gain + "/" + "-" + gamestatus.energystatus.spent}</span>}
-        {energystatus.capacity > 0 &&
+        {gamestatus.energystatus.capacity > 0 && (
+          <span className="absolute right-2 w-60 text-center bottom-10 font-bold z-20">
+            {"+" + gamestatus.energystatus.gain.toFixed(2) + "/" + "-" + gamestatus.energystatus.spent.toFixed(2)}
+          </span>
+        )}
 
-          <div className="absolute   bg-zinc-300/80 bottom-2 flex justify-start overflow-hidden  items-center right-2 w-60 h-9 z-20 rounded-xl">
-            <div className="bg-amber-300 h-9 rounded-xl transition-[width] duration-100 ease-linear " style={{ width: (energystatus.energy / energystatus.capacity) * 100 + "%" }}>
-              <span className=" text-auto absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 text-zinc-900/50  font-bold">{Math.round(energystatus.energy) + "e/" + Math.round(energystatus.capacity) + "e"}</span></div></div>}
-
+        {gamestatus.energystatus.capacity > 0 && (
+          <div className="absolute bg-zinc-300/80 bottom-2 flex justify-start overflow-hidden items-center right-2 w-60 h-9 z-20 rounded-xl">
+            <div
+              className="bg-amber-300 h-9 rounded-xl transition-[width] duration-100 ease-linear"
+              style={{ width: (energystatus.energy / energystatus.capacity) * 100 + "%" }}
+            >
+              <span className="text-zinc-900/50 absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 font-bold">
+                {Math.round(energystatus.energy) + "e/" + Math.round(energystatus.capacity) + "e"}
+              </span>
+            </div>
+          </div>
+        )}
       </div >
 
     </>
