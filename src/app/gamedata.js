@@ -352,7 +352,8 @@ const SteamEngineCraft = {
   cost: [
     {resource: "Iron Plate", amount: 5,},
     {resource: "Basic Circuit", amount: 12},
-    {resource: "Gold Plate", amount: 2}
+    {resource: "Gold Plate", amount: 2},
+    {resource: "Basic Battery", amount: 1}
   ],
   color : "#48524c",
   description: "Generates energy"
