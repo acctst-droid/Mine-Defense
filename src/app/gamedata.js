@@ -26,6 +26,9 @@ import ARAmmo from "../../public/AR Ammo.png"
 import Rifle from "../../public/Rifle.png"
 import RifleAmmo from "../../public/Rifle Ammo.png"
 import AssaultRifle from "../../public/Assault Rifle.png"
+import WaterPump from "../../public/Water Pump.png"
+import Water from "../../public/Water.png"
+import SteamEngine from "../../public/Steam Engine.png"
 export const initial_state = {
   inventory: {
     Stone: 0,
@@ -56,6 +59,9 @@ export const initial_state = {
     "Rifle Ammo": 0,
     "Assault Rifle": 0,
     "AR Ammo": 0,
+    "Water Pump": 0,
+    Water: 0,
+    "Steam Engine": 0,
   },
   raidStatus: {
     timeuntilraid: 600,
@@ -78,8 +84,11 @@ export const initial_state = {
   drillstatus: {},
   furnacesStatus: {},
   coalGeneratorStatus: {},
+  waterpumpstatus: {},
+  steamenginestatus: {},
 }
 export const Images = {
+  Water: Water,
   Furnace: Furnace,
   Stone: Stone,
   Coal: Coal,
@@ -108,6 +117,8 @@ export const Images = {
   "Gold Drill": GoldDrill,
   "Basic Circuit": BasicCircuit,
   "Basic Battery": BasicBattery,
+  "Water Pump": WaterPump,
+  "Steam Engine": SteamEngine
 }
 
 export const StoneOre = {
@@ -327,6 +338,25 @@ export const ARAmmoCraft = {
   description: ""
 }
 
+const WaterPumpCraft = {
+  item: "Water Pump",
+  cost: [
+    {resource: "Iron Plate", amount: 5,},
+    {resource: "Basic Circuit", amount: 5}
+  ],
+  color : "#0c17b0",
+  description: "Pumps water"
+}
+const SteamEngineCraft = {
+  item: "Steam Engine",
+  cost: [
+    {resource: "Iron Plate", amount: 5,},
+    {resource: "Basic Circuit", amount: 12},
+    {resource: "Gold Plate", amount: 2}
+  ],
+  color : "#48524c",
+  description: "Generates energy"
+}
 export const Craftables = {
   Furnace: FurnaceCraft,
   Pistol: PistolCraft,
@@ -339,6 +369,8 @@ export const Craftables = {
   "Basic Circuit": BasicCircuitCraft,
   "Basic Battery": BasicBatteryCraft,
   "Coal Generator": CoalGeneratorCraft,
+  "Water Pump": WaterPumpCraft,
+  "Steam Engine": SteamEngineCraft,
   "Stone Drill": StoneDrillCraft,
   "Coal Drill": CoalDrillCraft,
   "Copper Drill": CopperDrillCraft,
@@ -350,8 +382,10 @@ export const MaxStack = {
 
   Furnace: 1,
   Pistol: 1,
-  "Coal Generator": 1,
-  "Stone Drill": "Drill",
+ "Coal Generator": 1,
+  "Water Pump": 1,
+  "Steam Engine": 1,
+ "Stone Drill": "Drill",
   "Coal Drill": "Drill",
   "Copper Drill": "Drill",
   "Iron Drill": "Drill",

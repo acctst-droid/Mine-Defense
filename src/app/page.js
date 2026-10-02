@@ -34,6 +34,8 @@ export default function Home() {
   const [openFurnace, setOpenFurnace] = useState(null)
   const [openCoalGenerator, setOpenCoalGenerator] = useState(null)
   const [gameover, setgameover] = useState(false)
+  const [openwaterpump, setopenwaterpump] = useState(null)
+  const [opensteamengine, setopensteamengine] = useState(null)
 
   const lastmineref = useRef(lastmine)
   useEffect(() => { lastmineref.current = lastmine }, [lastmine])
@@ -46,6 +48,7 @@ export default function Home() {
       const availableenergy = gamestatusref.current.energystatus.energy
       let energyspent = 0;
       let energygain = 0;
+      let spentwater = 0;
 
       // ===== Mineração manual =====
       if (lastmineref.current !== null) {
@@ -185,14 +188,59 @@ export default function Home() {
           }
         }
       })
+      Object.entries(gamestatusref.current.waterpumpstatus).map(([key, value]) => {
+        if (availableenergy < 1 || !value.working) return
+        energyspent += 0.3
+        setGamestatus(prev => {
+          const pump = prev.waterpumpstatus[key]
+          let newprocess = pump.process + 0.1
+          let newinventory = prev.inventory
+          if (newprocess >= 1) {
+            newprocess = 0,
+              newinventory = { ...prev.inventory, Water: prev.inventory.Water + 3 }
+          }
+          return {
+            ...prev,
+            inventory: newinventory,
+            waterpumpstatus: {
+              ...prev.waterpumpstatus,
+              [key]: { ...prev.waterpumpstatus[key], process: Math.min(1, newprocess) }
+            }
+          }
 
-      // ===== Clamp energia =====
-      if (gamestatusref.current.energystatus.capacity < gamestatusref.current.energystatus.energy) {
-        setGamestatus(prev => ({
-          ...prev,
-          energystatus: { ...prev.energystatus, energy: prev.energystatus.capacity }
-        }));
-      }
+        })
+      })
+      Object.entries(gamestatusref.current.steamenginestatus).map(([key, value]) => {
+        if (gamestatusref.current.inventory.Coal > 0 && value.working && gamestatusref.current.inventory.Water > 2) {
+          energygain += 5
+
+          if (value.process >= 3) {
+            spentcoal += 1,
+            spentwater +=3
+              setGamestatus(prev => ({
+                ...prev,
+                steamenginestatus: {
+                  ...prev.steamenginestatus,
+                  [key]: {
+                    ...prev.steamenginestatus[key],
+                    process: 0,
+                  }
+                }
+              }))
+          }
+          setGamestatus(prev => ({
+            ...prev,
+            steamenginestatus: {
+              ...prev.steamenginestatus,
+              [key]: {
+                ...prev.steamenginestatus[key],
+                process: Math.min(3, prev.steamenginestatus[key].process + 0.1)
+              }
+            }
+          }))
+        }
+      })
+
 
       // ===== Consome carvão =====
       if (spentcoal > 0) {
@@ -204,13 +252,21 @@ export default function Home() {
           }
         }))
       }
-
+      if (spentwater > 0) {
+        setGamestatus(prev => ({
+          ...prev,
+          inventory: {
+            ...prev.inventory,
+            Water: Math.max(0, prev.inventory.Water - spentwater)
+          }
+        }))
+      }
       // ===== Atualiza energia =====
       const energychange = energygain - energyspent
       setGamestatus(prev => ({
         ...prev,
         energystatus: {
-          energy: prev.energystatus.energy + energychange,
+          energy: Math.min(prev.energystatus.capacity, prev.energystatus.energy + energychange),
           capacity: prev.inventory["Basic Battery"] * 100,
           gain: energygain,
           spent: energyspent,
@@ -393,7 +449,7 @@ export default function Home() {
                   <div key={furnaceid} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3 ">
                     <span className="text-auto font-bold">Furnace</span>
                     <Image src={Images.Furnace} alt="Furnace" width={50} height={50}></Image>
-                    {furnace.Input !== null && <Image src={Images[furnace.Input]}alt="FurnaceInput" width={20} height={20} className="mt-15 absolute"></Image>}
+                    {furnace.Input !== null && <Image src={Images[furnace.Input]} alt="FurnaceInput" width={20} height={20} className="mt-15 absolute"></Image>}
 
                     <button className="px-6 bg-green-500 rounded-2xl font-bold botaogenerico" onClick={() => {
                       setOpenFurnace(furnaceid)
@@ -441,6 +497,60 @@ export default function Home() {
                           inventory: {
                             ...prev.inventory,
                             "Coal Generator": prev.inventory["Coal Generator"] - 1
+                          }
+                        }
+                      })
+                    }}
+                  ></Trash>
+
+                </div>
+              ))
+            } else if (key === "Water Pump") {
+              return Object.entries(gamestatus.waterpumpstatus).map(([waterpump, value]) => (
+                <div key={waterpump} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3">
+                  <span className="text-auto font-bold">Water Pump</span>
+                  <Image src={Images["Water Pump"]} alt="Water Pump" width={40} height={30}></Image>
+                  <button className="px-6 bg-green-500 rounded-2xl font-bold botaogenerico" onClick={() => {
+                    setopenwaterpump(waterpump)
+                  }}>Use</button>
+                  <Trash className="bg-red-500 rounded botaogenerico"
+                    onClick={() => {
+                      setGamestatus(prev => {
+                        const copia = { ...prev.waterpumpstatus }
+                        delete copia[waterpump]
+                        return {
+                          ...prev,
+                          waterpumpstatus: copia,
+                          inventory: {
+                            ...prev.inventory,
+                            "Water Pump": prev.inventory["Water Pump"] - 1
+                          }
+                        }
+                      })
+                    }}
+                  ></Trash>
+
+                </div>
+              ))
+            } else if (key === "Steam Engine") {
+              return Object.entries(gamestatus.steamenginestatus).map(([steamengine, value]) => (
+                <div key={steamengine} className="w-40 h-40 flex justify-start flex-col items-center bg-zinc-300/60  rounded-2xl gap-2 p-3">
+                  <span className="text-auto font-bold">Steam Engine</span>
+                  <Image src={Images["Steam Engine"]} alt="Steam Engine" width={50} height={50}></Image>
+                  <button className="px-6 bg-green-500 rounded-2xl font-bold botaogenerico" onClick={() => {
+                    setopensteamengine(steamengine)
+                  }}>Use</button>
+                  <Trash className="bg-red-500 rounded botaogenerico"
+                    onClick={() => {
+                      setGamestatus(prev => {
+                        const copia = { ...prev.steamenginestatus }
+                        delete copia[steamengine]
+                        return {
+                          ...prev,
+                          steamenginestatus: copia,
+                          inventory: {
+                            ...prev.inventory,
+                            "Steam Engine": prev.inventory["Steam Engine"] - 1
                           }
                         }
                       })
@@ -724,7 +834,82 @@ export default function Home() {
             <span>{inventory.Coal}</span>
 
           </div>}
+          {openwaterpump !== null && <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-120 h-100 bg-zinc-500 rounded-2xl flex flex-col justify-start items-center gap-2 p-5">
+            <span className="w-10 h-10 absolute font-bold text-center flex justify-center items-center botaogenerico  text-3xl top-3 right-3 bg-red-500 rounded" onClick={() => {
+              setopenwaterpump(null)
+            }}>X</span>
+            <Image src={Images["Water Pump"]} alt="Water Pump" width={100} height={100}></Image>
+            <div className="relative  w-90 h-10 bg-zinc-300/60 rounded-2xl overflow-hidden">
+              <div className="h-10 bg-green-500 duration-100 ease-linear transition-[width]" style={{ width: (gamestatus.waterpumpstatus[openwaterpump].process) * 100 + "%" }}></div>
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-2xl">{Math.round(gamestatus.waterpumpstatus[openwaterpump].process * 100) + "%"}</span>
+            </div>
+            <button className={`${gamestatus.waterpumpstatus[openwaterpump].working ? "botaogenerico w-40 h-10 text-2xl font-bold rounded-2xl bg-green-500 " : "botaogenerico font-bold text-2xl w-40 h-10 rounded-2xl bg-red-500"}`}
+              onClick={() => {
+                setGamestatus(prev => ({
+                  ...prev,
+                  waterpumpstatus: {
+                    ...prev.waterpumpstatus,
+                    [openwaterpump]: {
+                      ...prev.waterpumpstatus[openwaterpump],
+                      working: !prev.waterpumpstatus[openwaterpump].working
+                    }
+                  }
+                }))
+              }}
+            >Pump</button>
+            <span className="absolute bottom-1">Pumps water every second</span>
+          </div>}
+          {opensteamengine !== null && <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-120 h-100 bg-zinc-500 rounded-2xl flex flex-col justify-start items-center gap-2 p-5">
+            <span className="w-10 h-10 absolute font-bold text-center flex justify-center items-center botaogenerico  text-3xl top-3 right-3 bg-red-500 rounded" onClick={() => {
+              setopensteamengine(null)
 
+            }}>X</span>
+            <Image src={Images["Steam Engine"]} alt="Steam Engine" width={150} height={150}></Image>
+            <div className="relative overflow-hidden bg-zinc-300/60 w-100 h-10 rounded-2xl">
+              <span className="absolute text-2xl font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">{Math.round(3 - gamestatus.steamenginestatus[opensteamengine].process) + "s"}</span>
+              <div className="bg-green-500 h-10 rounded-2xl transition-[width] duration-100 ease-linear" style={{ width: Math.round((gamestatus.steamenginestatus[opensteamengine].process / 3) * 100) + "%" }}></div>
+            </div>
+            <div className="flex gap-3">
+              <div className="flex flex-col justify-center items-center">
+                <div className="flex justify-center items-center bg-zinc-300/60 rounded-2xl w-12 h-12">
+                  <Image src={Images.Coal} width={40} height={40} alt={"Coal"}></Image></div>
+                <span>{gamestatus.inventory.Coal}</span>
+              </div>
+              <div className="flex flex-col justify-center items-center">
+                <div className="flex justify-center items-center bg-zinc-300/60 rounded-2xl w-12 h-12">
+                  <Image src={Images.Water} width={56} height={56} alt={"Water"}></Image></div>
+                <span>{gamestatus.inventory.Water}</span>
+              </div>
+            </div>
+            <button className={`${gamestatus.steamenginestatus[opensteamengine].working ? "botaogenerico w-40 h-12 bg-green-500 font-bold text-2xl rounded-2xl" : "botaogenerico w-40 h-12 rounded-2xl bg-red-500 font-bold text-2xl"}`}
+              onClick={() => {
+                if (gamestatus.inventory.Coal < 1 || gamestatus.inventory.Water < 3) return
+                const status = gamestatus.steamenginestatus[opensteamengine].working
+                let coaladd = 0
+                let wateradd = 0
+                if (status === false) {
+                  coaladd = 1
+                  wateradd = 3
+                }
+                setGamestatus(prev => ({
+                  ...prev,
+                  inventory: {
+                    ...prev.inventory,
+                    Coal: prev.inventory.Coal - coaladd,
+                    Water: prev.inventory.Water - wateradd,
+                  },
+                  steamenginestatus: {
+                    ...prev.steamenginestatus,
+                    [opensteamengine]: {
+                      ...prev.steamenginestatus[opensteamengine],
+                      working: !prev.steamenginestatus[opensteamengine].working
+                    }
+                  }
+                }))
+              }}
+            >Generate</button>
+            <span>Generates 150 energy per coal</span>
+          </div>}
         </div>}
 
         {activeGui === "Craft" && <div className="z-20 w-300 h-150 p-6 bg-slate-900/80 overflow-y-auto overflow-x-hidden gap-6 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-min grid-cols-5 justify-start items-start shadow-inner">
@@ -732,89 +917,127 @@ export default function Home() {
             const inv = gamestatus.inventory
 
             return (
-              <div className="w-50 h-80 justify-start items-center flex flex-col  p-3 rounded-2xl m-5 gap-1" style={{ backgroundColor: value.color }} key={key}>
-                <Image src={Images[value.item]} alt={value.item} height={70} width={70}></Image>
-                <span className="font-bold text-2xl">{value.item}</span>
-                {value.cost.map((c, i) => {
-                  return <div key={i} className="flex flex-row justify-center items-center gap-1">
-                    <Image src={Images[c.resource]} alt={c.resource} height={30} width={30}></Image>
-                    <span className={` ${inv[c.resource] >= c.amount ? "text-white" : "text-red-500"}`}
-                    >{c.amount + " " + c.resource + " (" + inv[c.resource] + ")"}</span>
-                  </div>
-                })}
+              <div className="w-50 h-90 justify-between items-center flex flex-col  p-3 rounded-2xl m-5 gap-1" style={{ backgroundColor: value.color }} key={key}>
+                <div className="flex justify-center items-center flex-col">
 
+                  <Image src={Images[value.item]} alt={value.item} height={70} width={70}></Image>
+                  <span className="font-bold text-2xl">{value.item}</span>
+                  {value.cost.map((c, i) => {
+                    return <div key={i} className="flex flex-row justify-center items-center gap-1">
+                      <Image src={Images[c.resource]} alt={c.resource} height={30} width={30}></Image>
+                      <span className={` ${inv[c.resource] >= c.amount ? "text-white" : "text-red-500"}`}
+                      >{c.amount + " " + c.resource + " (" + inv[c.resource] + ")"}</span>
+                    </div>
+                  })}
+                </div>
+                <div className="flex-col justify-center items-center flex">
+                  <span className="font-bold ">{Craftables[key].description ?? ""}</span>
+                  <button className=" bg-green-500 rounded-2xl botaogenerico font-bold text-2xl px-6"
+                    onClick={() => {
+                      const canCraft = value.cost.every((cx) => inv[cx.resource] >= cx.amount)
 
-                <button className="mt-2 bg-green-500 rounded-2xl botaogenerico font-bold text-2xl px-6"
-                  onClick={() => {
-                    const canCraft = value.cost.every((cx) => inv[cx.resource] >= cx.amount)
-
-                    if (canCraft) {
-                      value.cost.map((c, i) => (
+                      if (canCraft) {
                         setGamestatus(prev => ({
                           ...prev,
                           inventory: {
                             ...prev.inventory,
-                            [c.resource]: prev.inventory[c.resource] - c.amount,
-                            [value.item]: prev.inventory[value.item] + 1,
+                            [value.item]: (prev.inventory[value.item] ?? 0) + 1
                           }
                         }))
-                      ))
-
-
-                      if (key.includes("Drill")) {
-                        const mine = key.split(" ")[0]
-                        const drillid = mine + " " + Date.now() + Math.random()
-                        setGamestatus(prev => ({
-                          ...prev,
-                          drillstatus: {
-                            ...prev.drillstatus,
-                            [drillid]: {
-                              Mining: false,
-                              timetomine: OreCards[key.split(" ")[0]].timeToMine,
-                              timemined: 0,
-                              Ore: OreCards[key.split(" ")[0]].Ore,
+                        value.cost.map((c, i) => (
+                          setGamestatus(prev => ({
+                            ...prev,
+                            inventory: {
+                              ...prev.inventory,
+                              [c.resource]: prev.inventory[c.resource] - c.amount,
                             }
-                          }
-                        }))
-                      }
-                      if (key === "Furnace") {
-                        const furnaceId = "Furnace" + Date.now() + Math.random()
-                        setGamestatus(prev => ({
-                          ...prev,
-                          furnacesStatus: {
-                            ...prev.furnacesStatus,
-                            [furnaceId]: {
-                              Melting: true,
-                              TimeToMelt: null,
-                              TimeMelted: 0,
-                              Input: null,
-                              Quantity: 0,
-                              Output: null,
-                              OutputQuantity: 0,
+                          }))
+                        ))
+
+
+                        if (key.includes("Drill")) {
+                          const mine = key.split(" ")[0]
+                          const drillid = mine + " " + Date.now() + Math.random()
+                          setGamestatus(prev => ({
+                            ...prev,
+                            drillstatus: {
+                              ...prev.drillstatus,
+                              [drillid]: {
+                                Mining: false,
+                                timetomine: OreCards[key.split(" ")[0]].timeToMine,
+                                timemined: 0,
+                                Ore: OreCards[key.split(" ")[0]].Ore,
+                              }
                             }
-                          }
-                        }))
-                      }
-                      if (key === "Coal Generator") {
-                        const coalgeneratorid = "Coal Generator" + Date.now() + Math.random()
-                        setGamestatus(prev => ({
-                          ...prev,
-                          coalGeneratorStatus: {
-                            ...prev.coalGeneratorStatus,
-                            [coalgeneratorid]: {
-                              Burning: false,
-                              TimeBurned: 0,
+                          }))
+                        }
+                        if (key === "Furnace") {
+                          const furnaceId = "Furnace" + Date.now() + Math.random()
+                          setGamestatus(prev => ({
+                            ...prev,
+                            furnacesStatus: {
+                              ...prev.furnacesStatus,
+                              [furnaceId]: {
+                                Melting: true,
+                                TimeToMelt: null,
+                                TimeMelted: 0,
+                                Input: null,
+                                Quantity: 0,
+                                Output: null,
+                                OutputQuantity: 0,
+                              }
                             }
-                          }
-                        }))
+                          }))
+                        }
+                        if (key === "Coal Generator") {
+                          const coalgeneratorid = "Coal Generator" + Date.now() + Math.random()
+                          setGamestatus(prev => ({
+                            ...prev,
+                            coalGeneratorStatus: {
+                              ...prev.coalGeneratorStatus,
+                              [coalgeneratorid]: {
+                                Burning: false,
+                                TimeBurned: 0,
+                              }
+                            }
+                          }))
+
+                        }
+                        if (key === "Water Pump") {
+                          const waterpumpid = "Water Pump" + Date.now() + Math.random()
+                          setGamestatus(prev => ({
+                            ...prev,
+                            waterpumpstatus: {
+                              ...prev.waterpumpstatus,
+                              [waterpumpid]: {
+                                process: 0,
+                                working: false,
+                              }
+                            }
+                          }))
+                        }
+                        if (key === "Steam Engine") {
+                          const steamengineid = "Steam Engine" + Date.now() + Math.random()
+                          setGamestatus(prev => ({
+                            ...prev,
+
+                            steamenginestatus: {
+                              ...prev.steamenginestatus,
+                              [steamengineid]: {
+                                process: 0,
+                                working: false,
+
+                              }
+                            }
+                          }))
+                        }
+
+
 
                       }
+                    }}>Craft</button>
 
-
-
-                    }
-                  }}>Craft</button>
-                <span className="font-bold mt-2">{Craftables[key].description ?? ""}</span>
+                </div>
               </div>
             )
           })}
