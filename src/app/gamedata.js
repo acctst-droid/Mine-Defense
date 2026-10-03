@@ -345,7 +345,7 @@ export const AssaultRifleCraft = {
 export const ARAmmoCraft = {
   item: "AR Ammo",
   cost: [
-    { resource: "Steel Plate", amount: 4 },
+    { resource: "Steel", amount: 4 },
     { resource: "Basic Circuit", amount: 1 }
   ],
   color: "#5c5b5b",
