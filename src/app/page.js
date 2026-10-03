@@ -14,10 +14,18 @@ export default function Home() {
   const gamestatusref = useRef(gamestatus)
   useEffect(() => { gamestatusref.current = gamestatus }, [gamestatus])
   useEffect(() => {
-    const gamedata = JSON.parse(localStorage.getItem("gamestatus"))
-    if (gamedata !== null) {
-      setGamestatus(gamedata)
+    const saved = localStorage.getItem("gamestatus");
 
+    if (saved) {
+      const oldState = JSON.parse(saved);
+
+      if (oldState.version && oldState.version === initial_state.version) {
+        setGamestatus(oldState);
+      } else {
+        setGamestatus(initial_state);
+      }
+    } else {
+      setGamestatus(initial_state);
     }
   }, [])
   useEffect(() => {

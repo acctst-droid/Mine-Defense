@@ -32,6 +32,7 @@ import SteamEngine from "../../public/Steam Engine.png"
 import Steel from "../../public/Steel.png"
 import Boiler from "../../public/Boiler.png"
 export const initial_state = {
+  version: "beta 1.0",
   inventory: {
     Stone: 110,
     Coal: 110,
