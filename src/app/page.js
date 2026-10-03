@@ -46,6 +46,7 @@ export default function Home() {
     const interval = setInterval(() => {
       let spentcoal = 0;
       const availableenergy = gamestatusref.current.energystatus.energy
+      let newavailableenergy = availableenergy
       let energyspent = 0;
       let energygain = 0;
       let spentwater = 0;
@@ -164,33 +165,54 @@ export default function Home() {
 
       // ===== Drills =====
       Object.entries(gamestatusref.current.drillstatus).forEach(([key, value]) => {
-        if (value.Mining && availableenergy >= DrillEnergyNeeded[value.Ore]) {
-          energyspent += DrillEnergyNeeded[value.Ore] / 10
-          setGamestatus(prev => ({
-            ...prev,
-            drillstatus: {
-              ...prev.drillstatus,
-              [key]: { ...prev.drillstatus[key], timemined: prev.drillstatus[key].timemined + 0.1 }
+        if (newavailableenergy < DrillEnergyNeeded[value.ore] || value.mining === false) return
+        
+        energyspent = energyspent + (DrillEnergyNeeded[value.ore] / 10) * value.quantity
+        newavailableenergy -= (DrillEnergyNeeded[value.ore] / 10 * value.quantity)
+          setGamestatus(prev => {
+            let newprocess = 0.1
+            let newore = false
+            if (prev.drillstatus[key].process + 0.1 >= value.complete) {
+              newprocess = value.complete
+              newore = true
             }
-          }))
-          if (value.timemined >= value.timetomine) {
-            setGamestatus(prev => ({
-              ...prev,
-              drillstatus: {
-                ...prev.drillstatus,
-                [key]: { ...prev.drillstatus[key], timemined: 0 }
-              },
-              inventory: {
-                ...prev.inventory,
-                [value.Ore]: prev.inventory[value.Ore] + 1
+            if (!newore) {
+              return {
+                ...prev,
+                drillstatus: {
+                  ...prev.drillstatus,
+                  [key]: {
+                    ...prev.drillstatus[key],
+                    process: prev.drillstatus[key].process + newprocess
+
+                  }
+                }
               }
-            }))
-          }
-        }
+            } else {
+              return {
+                ...prev,
+                inventory: {
+                  ...prev.inventory,
+                  [value.ore]: prev.inventory[value.ore] + value.quantity
+                },
+                drillstatus: {
+                  ...prev.drillstatus,
+                  [key]: {
+                    ...prev.drillstatus[key],
+                    process: 0,
+
+                  }
+                }
+              }
+            }
+          })
+
+
       })
       Object.entries(gamestatusref.current.waterpumpstatus).map(([key, value]) => {
-        if (availableenergy < 1 || !value.working) return
+        if (newavailableenergy < 0.3 || !value.working) return
         energyspent += 0.3
+        newavailableenergy -= 0.3
         setGamestatus(prev => {
           const pump = prev.waterpumpstatus[key]
           let newprocess = pump.process + 0.1
@@ -216,17 +238,17 @@ export default function Home() {
 
           if (value.process >= 3) {
             spentcoal += 1,
-            spentwater +=3
-              setGamestatus(prev => ({
-                ...prev,
-                steamenginestatus: {
-                  ...prev.steamenginestatus,
-                  [key]: {
-                    ...prev.steamenginestatus[key],
-                    process: 0,
-                  }
+              spentwater += 3
+            setGamestatus(prev => ({
+              ...prev,
+              steamenginestatus: {
+                ...prev.steamenginestatus,
+                [key]: {
+                  ...prev.steamenginestatus[key],
+                  process: 0,
                 }
-              }))
+              }
+            }))
           }
           setGamestatus(prev => ({
             ...prev,
@@ -266,7 +288,7 @@ export default function Home() {
       setGamestatus(prev => ({
         ...prev,
         energystatus: {
-          energy: Math.min(prev.energystatus.capacity, prev.energystatus.energy + energychange),
+          energy: Math.max(0, Math.min(prev.energystatus.capacity, prev.energystatus.energy + energychange)),
           capacity: prev.inventory["Basic Battery"] * 100,
           gain: energygain,
           spent: energyspent,
@@ -962,11 +984,12 @@ export default function Home() {
                             ...prev,
                             drillstatus: {
                               ...prev.drillstatus,
-                              [drillid]: {
-                                Mining: false,
-                                timetomine: OreCards[key.split(" ")[0]].timeToMine,
-                                timemined: 0,
-                                Ore: OreCards[key.split(" ")[0]].Ore,
+                              [key]: {
+                                quantity: (prev.drillstatus[key]?.quantity ?? 0) + 1,
+                                process: prev.drillstatus[key]?.process ?? 0,
+                                complete: prev.drillstatus[key]?.complete ?? OreCards[mine].timeToMine,
+                                ore: prev.drillstatus[key]?.ore ?? OreCards[mine].Ore,
+                                mining: prev.drillstatus[key]?.mining ?? false,
                               }
                             }
                           }))
@@ -1049,17 +1072,17 @@ export default function Home() {
               const orename = key.split(" ")[0];
               const drillname = orename + " Drill"
               const drillid = key; // ou o valor correto para o id
-              const drillstatus = value
+
               return (
                 <div
                   key={drillid}
                   className="w-50 h-90 rounded-2xl flex justify-start p-5 gap-3 flex-col items-center"
                   style={{ backgroundColor: Craftables[drillname].color }}
                 >
-                  <span className="text-2xl font-bold">{drillname}</span>
+                  <span className="text-2xl font-bold">{drillname + " x" + value.quantity}</span>
                   <Image width={150} height={150} src={Images[drillname]} alt="Drill Image" />
                   <button
-                    className={`${drillstatus.Mining
+                    className={`${value.mining
                       ? "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-green-500"
                       : "text-2xl font-bold text-auto rounded-xl w-30 botaogenerico bg-red-500"
                       }`}
@@ -1070,7 +1093,7 @@ export default function Home() {
                           ...prev.drillstatus,
                           [drillid]: {
                             ...prev.drillstatus[drillid],
-                            Mining: !prev.drillstatus[drillid].Mining,
+                            mining: !prev.drillstatus[drillid].mining,
                           },
                         },
                       }));
@@ -1081,11 +1104,11 @@ export default function Home() {
                   <span>{"Spent " + DrillEnergyNeeded[orename] + "e per second"}</span>
                   <div className="w-40 overflow-hidden h-7 relative flex justify-start items-center bg-zinc-300/60 rounded-2xl">
                     <span className="absolute left-1/2 font-bold -translate-x-1/2">
-                      {Math.round(drillstatus.timetomine - drillstatus.timemined) + "s"}
+                      {Math.round(value.complete - value.process) + "s"}
                     </span>
                     <div
                       className="h-7 bg-green-500 transition-[width] ease-linear duration-100 rounded-xl"
-                      style={{ width: (drillstatus.timemined / drillstatus.timetomine) * 100 + "%" }}
+                      style={{ width: (value.process / value.complete) * 100 + "%" }}
                     ></div>
                   </div>
                 </div>

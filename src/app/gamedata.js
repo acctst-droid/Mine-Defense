@@ -81,7 +81,9 @@ export const initial_state = {
     maxbasehp: 100,
     basehp: 100,
   },
-  drillstatus: {},
+  drillstatus: {
+
+  },
   furnacesStatus: {},
   coalGeneratorStatus: {},
   waterpumpstatus: {},
