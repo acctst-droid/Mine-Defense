@@ -34,15 +34,15 @@ import Boiler from "../../public/Boiler.png"
 export const initial_state = {
   version: "beta 1.0",
   inventory: {
-    Stone: 110,
-    Coal: 110,
+    Stone: 0,
+    Coal: 0,
     Copper: 0,
     Iron: 0,
     Gold: 0,
     Oil: 0,
     Uranium: 0,
     Furnace: 0,
-    "Iron Plate": 110,
+    "Iron Plate": 0,
     "Copper Plate": 0,
     "Gold Plate": 0,
     Brick: 0,
