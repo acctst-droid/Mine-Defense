@@ -29,17 +29,19 @@ import AssaultRifle from "../../public/Assault Rifle.png"
 import WaterPump from "../../public/Water Pump.png"
 import Water from "../../public/Water.png"
 import SteamEngine from "../../public/Steam Engine.png"
+import Steel from "../../public/Steel.png"
+import Boiler from "../../public/Boiler.png"
 export const initial_state = {
   inventory: {
-    Stone: 0,
-    Coal: 0,
+    Stone: 110,
+    Coal: 110,
     Copper: 0,
     Iron: 0,
     Gold: 0,
     Oil: 0,
     Uranium: 0,
     Furnace: 0,
-    "Iron Plate": 0,
+    "Iron Plate": 110,
     "Copper Plate": 0,
     "Gold Plate": 0,
     Brick: 0,
@@ -62,6 +64,8 @@ export const initial_state = {
     "Water Pump": 0,
     Water: 0,
     "Steam Engine": 0,
+    Steel: 0,
+    Boiler: 0,
   },
   raidStatus: {
     timeuntilraid: 600,
@@ -120,7 +124,9 @@ export const Images = {
   "Basic Circuit": BasicCircuit,
   "Basic Battery": BasicBattery,
   "Water Pump": WaterPump,
-  "Steam Engine": SteamEngine
+  "Steam Engine": SteamEngine,
+  Steel: Steel,
+  Boiler: Boiler,
 }
 
 export const StoneOre = {
@@ -181,6 +187,11 @@ export const OreCards = {
   Gold: GoldOre,
   Uranium: UraniumOre,
   Oil: OilMine,
+  "Iron Plate": {
+    Ore: "Iron Plate",
+    meltable: true,
+    melttime: 10,
+  }
 }
 
 export const FurnaceCraft = {
@@ -298,8 +309,8 @@ export const BasicCircuitCraft = {
 export const BasicBatteryCraft = {
   item: "Basic Battery",
   cost: [
-    { resource: "Iron Plate", amount: 6 },
-    { resource: "Basic Circuit", amount: 6 }
+    { resource: "Iron Plate", amount: 3 },
+    { resource: "Basic Circuit", amount: 4 }
   ],
   color: "#783813",
   description: "Stores energy"
@@ -316,7 +327,7 @@ export const RifleCraft = {
 export const RifleAmmoCraft = {
   item: "Rifle Ammo",
   cost: [
-    { resource: "Iron Plate", amount: 2 }
+    { resource: "Steel", amount: 1 }
   ],
   color: "#bd7639",
   description: ""
@@ -324,8 +335,8 @@ export const RifleAmmoCraft = {
 export const AssaultRifleCraft = {
   item: "Assault Rifle",
   cost: [
-    { resource: "Iron Plate", amount: 20 },
-    { resource: "Basic Circuit", amount: 5 }
+    { resource: "Steel", amount: 10 },
+    { resource: "Basic Circuit", amount: 4 }
   ],
   color: "#878480",
   description: "100 damage"
@@ -343,22 +354,33 @@ export const ARAmmoCraft = {
 const WaterPumpCraft = {
   item: "Water Pump",
   cost: [
-    {resource: "Iron Plate", amount: 5,},
-    {resource: "Basic Circuit", amount: 5}
+    { resource: "Iron Plate", amount: 5, },
+    { resource: "Basic Circuit", amount: 2 }
   ],
-  color : "#0c17b0",
+  
+  color: "#0c17b0",
   description: "Pumps water"
 }
 const SteamEngineCraft = {
   item: "Steam Engine",
   cost: [
-    {resource: "Iron Plate", amount: 5,},
-    {resource: "Basic Circuit", amount: 12},
-    {resource: "Gold Plate", amount: 2},
-    {resource: "Basic Battery", amount: 1}
+    { resource: "Steel", amount: 5, },
+    { resource: "Basic Circuit", amount: 12 },
+    { resource: "Gold Plate", amount: 2 },
+    { resource: "Boiler", amount: 1 },
   ],
-  color : "#48524c",
+  color: "#48524c",
   description: "Generates energy"
+}
+const boilerCraft = {
+  item: "Boiler",
+  cost: [
+    { resource: "Steel", amount: 2 },
+    { resource: "Basic Circuit", amount: 2 },
+    { resource: "Basic Battery", amount: 1}
+  ],
+  color: "#0c381e",
+  description: ""
 }
 export const Craftables = {
   Furnace: FurnaceCraft,
@@ -373,6 +395,7 @@ export const Craftables = {
   "Basic Battery": BasicBatteryCraft,
   "Coal Generator": CoalGeneratorCraft,
   "Water Pump": WaterPumpCraft,
+  Boiler: boilerCraft,
   "Steam Engine": SteamEngineCraft,
   "Stone Drill": StoneDrillCraft,
   "Coal Drill": CoalDrillCraft,
@@ -385,10 +408,10 @@ export const MaxStack = {
 
   Furnace: 1,
   Pistol: 1,
- "Coal Generator": 1,
+  "Coal Generator": 1,
   "Water Pump": 1,
   "Steam Engine": 1,
- "Stone Drill": "Drill",
+  "Stone Drill": "Drill",
   "Coal Drill": "Drill",
   "Copper Drill": "Drill",
   "Iron Drill": "Drill",
@@ -400,6 +423,7 @@ export const MeltingResults = {
   Copper: "Copper Plate",
   Gold: "Gold Plate",
   Stone: "Brick",
+  "Iron Plate": "Steel",
 
 }
 export const Guns = {
@@ -413,7 +437,7 @@ export const Guns = {
   },
   "Assault Rifle": {
     damage: 100,
-    ammo:"AR Ammo"
+    ammo: "AR Ammo"
   }
 }
 export const DrillEnergyNeeded = {

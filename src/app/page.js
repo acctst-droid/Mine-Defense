@@ -166,46 +166,46 @@ export default function Home() {
       // ===== Drills =====
       Object.entries(gamestatusref.current.drillstatus).forEach(([key, value]) => {
         if (newavailableenergy < DrillEnergyNeeded[value.ore] || value.mining === false) return
-        
+
         energyspent = energyspent + (DrillEnergyNeeded[value.ore] / 10) * value.quantity
         newavailableenergy -= (DrillEnergyNeeded[value.ore] / 10 * value.quantity)
-          setGamestatus(prev => {
-            let newprocess = 0.1
-            let newore = false
-            if (prev.drillstatus[key].process + 0.1 >= value.complete) {
-              newprocess = value.complete
-              newore = true
-            }
-            if (!newore) {
-              return {
-                ...prev,
-                drillstatus: {
-                  ...prev.drillstatus,
-                  [key]: {
-                    ...prev.drillstatus[key],
-                    process: prev.drillstatus[key].process + newprocess
+        setGamestatus(prev => {
+          let newprocess = 0.1
+          let newore = false
+          if (prev.drillstatus[key].process + 0.1 >= value.complete) {
+            newprocess = value.complete
+            newore = true
+          }
+          if (!newore) {
+            return {
+              ...prev,
+              drillstatus: {
+                ...prev.drillstatus,
+                [key]: {
+                  ...prev.drillstatus[key],
+                  process: prev.drillstatus[key].process + newprocess
 
-                  }
-                }
-              }
-            } else {
-              return {
-                ...prev,
-                inventory: {
-                  ...prev.inventory,
-                  [value.ore]: prev.inventory[value.ore] + value.quantity
-                },
-                drillstatus: {
-                  ...prev.drillstatus,
-                  [key]: {
-                    ...prev.drillstatus[key],
-                    process: 0,
-
-                  }
                 }
               }
             }
-          })
+          } else {
+            return {
+              ...prev,
+              inventory: {
+                ...prev.inventory,
+                [value.ore]: prev.inventory[value.ore] + value.quantity
+              },
+              drillstatus: {
+                ...prev.drillstatus,
+                [key]: {
+                  ...prev.drillstatus[key],
+                  process: 0,
+
+                }
+              }
+            }
+          }
+        })
 
 
       })
@@ -426,8 +426,9 @@ export default function Home() {
           </div>
         </div>
         {activeGui === "Mine" && <div className=" w-300 z-20 h-150 bg-slate-900/80 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid grid-rows-2 grid-cols-6  justify-start flex-row items-start shadow-inner">
-          {Object.entries(OreCards).map(([key, value]) => (
-            <div key={key} className="w-40 h-60 rounded-xl flex justify-start items-center flex-col gap-2 ml-5 mt-5 p-4" style={{ backgroundColor: value.color }}>
+          {Object.entries(OreCards).map(([key, value]) => {
+            if (key === "Iron Plate") return
+            return <div key={key} className="w-40 h-60 rounded-xl flex justify-start items-center flex-col gap-2 ml-5 mt-5 p-4" style={{ backgroundColor: value.color }}>
               <span className="text-2xl font-bold">{value.Ore}</span>
               <Image src={Images[value.Ore]} alt="Copper" width={70} height={70}></Image>
               {lastmine !== value.Ore && mine && <button className="px-10 bg-green-500 rounded-xl cursor-pointer " onClick={() => {
@@ -449,7 +450,7 @@ export default function Home() {
               </div>
               <span className="font-bold">{inventory[value.Ore]}</span>
             </div>
-          ))}
+          })}
         </div>}
 
         {activeGui === "Inventory" && <div className="relative z-20 w-300 h-150 p-6 bg-slate-900/80 border overflow-auto border-slate-700/50 rounded-xl ml-10 grid auto-rows-auto gap-6 grid-cols-6  justify-start flex-row items-start shadow-inner">
@@ -944,6 +945,8 @@ export default function Home() {
 
                   <Image src={Images[value.item]} alt={value.item} height={70} width={70}></Image>
                   <span className="font-bold text-2xl">{value.item}</span>
+
+
                   {value.cost.map((c, i) => {
                     return <div key={i} className="flex flex-row justify-center items-center gap-1">
                       <Image src={Images[c.resource]} alt={c.resource} height={30} width={30}></Image>
@@ -951,6 +954,7 @@ export default function Home() {
                       >{c.amount + " " + c.resource + " (" + inv[c.resource] + ")"}</span>
                     </div>
                   })}
+
                 </div>
                 <div className="flex-col justify-center items-center flex">
                   <span className="font-bold ">{Craftables[key].description ?? ""}</span>
